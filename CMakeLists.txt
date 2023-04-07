@@ -1,40 +1,22 @@
 cmake_minimum_required(VERSION 3.20)
-project(ZeroBounce VERSION 1.0.0 LANGUAGES CXX)
+project(ZeroBounce VERSION 1.0.0 LANGUAGES C)
 
-set(CMAKE_CXX_STANDARD 20)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-
-file(GLOB_RECURSE SOURCES "src/*.cpp")
-add_library(${PROJECT_NAME} STATIC ${SOURCES})
-target_include_directories(${PROJECT_NAME} PUBLIC include)
+set(CMAKE_C_STANDARD 17)
+set(CMAKE_C_STANDARD_REQUIRED ON)
 
 include(FetchContent)
 
-# Download and build libcpr
+# Download and build json-c
 FetchContent_Declare(
-    cpr 
-    GIT_REPOSITORY https://github.com/libcpr/cpr.git
-    GIT_TAG 0817715923c9705e68994eb52ef9df3f6845beba
-) # The commit hash for 1.10.x. Replace with the latest from: https://github.com/libcpr/cpr/releases
-# Download and build nlohmann_json
-FetchContent_Declare(
-    nlohmann_json 
-    URL https://github.com/nlohmann/json/releases/download/v3.11.2/json.tar.xz
-)
-# Download and build googletest
-FetchContent_Declare(
-    googletest
-    GIT_REPOSITORY https://github.com/google/googletest.git
-    GIT_TAG        v1.13.0
+  json-c
+  GIT_REPOSITORY https://github.com/json-c/json-c.git
+  GIT_TAG json-c-0.16-20220414
 )
 
-FetchContent_MakeAvailable(cpr nlohmann_json googletest)
+FetchContent_MakeAvailable(json-c)
 
-target_link_libraries(${PROJECT_NAME} PUBLIC cpr::cpr nlohmann_json::nlohmann_json)
+file(GLOB_RECURSE SOURCES "src/*.c")
+add_library(${PROJECT_NAME} SHARED ${SOURCES})
+target_include_directories(${PROJECT_NAME} PUBLIC include)
 
-add_executable(zb_test main.cpp)
-target_link_libraries(zb_test PRIVATE ${PROJECT_NAME})
-
-add_executable(tests test/ZeroBounceTest.cpp)
-target_include_directories(tests PRIVATE ${gtest_SOURCE_DIR}/include)
-target_link_libraries(tests PRIVATE gtest gmock gtest_main ${PROJECT_NAME})
+target_link_libraries(${PROJECT_NAME} PUBLIC json-c)
