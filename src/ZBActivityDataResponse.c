@@ -10,7 +10,7 @@ struct ZBActivityDataResponse new_zb_activity_data_response() {
 }
 
 char* zb_activity_data_response_to_string(struct ZBActivityDataResponse response) {
-    const char* serialization = "ZBActivityDataResponse{found=%d, activeInDays='%s'}";
+    const char* serialization = "ZBActivityDataResponse{found=%d, activeInDays='%d'}";
     int size = snprintf(NULL, 0, serialization, response.found, response.activeInDays);
 
     if (size < 0) {
@@ -27,7 +27,7 @@ char* zb_activity_data_response_to_string(struct ZBActivityDataResponse response
 }
 
 struct ZBActivityDataResponse zb_activity_data_response_from_json(const json_object* j) {
-    struct ZBActivityDataResponse r;
+    struct ZBActivityDataResponse r = new_zb_activity_data_response();
 
     r.found = *(int*)get_json_value(j, "found", (void*)0, json_type_int);
     r.activeInDays = atoi((char*)get_json_value(j, "active_in_days", (void*)"-1", json_type_string));
