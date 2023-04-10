@@ -3,15 +3,15 @@
 
 #include <json-c/json.h>
 
-struct ZBActivityDataResponse {
+typedef struct {
     int found;
     int activeInDays;
-};
+} ZBActivityDataResponse;
 
-struct ZBActivityDataResponse new_zb_activity_data_response();
+ZBActivityDataResponse new_zb_activity_data_response();
 
-char* zb_activity_data_response_to_string(struct ZBActivityDataResponse response);
+char* zb_activity_data_response_to_string(ZBActivityDataResponse response);
 
-struct ZBActivityDataResponse zb_activity_data_response_from_json(const json_object* j);
+ZBActivityDataResponse zb_activity_data_response_from_json(const json_object* j);
 
 #endif

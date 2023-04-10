@@ -1,7 +1,9 @@
+#include "ZeroBounce/utils.h"
+
 #include "ZeroBounce/ZBActivityDataResponse.h"
 
-struct ZBActivityDataResponse new_zb_activity_data_response() {
-    struct ZBActivityDataResponse response;
+ZBActivityDataResponse new_zb_activity_data_response() {
+    ZBActivityDataResponse response;
 
     response.found = 0;
     response.activeInDays = -1;
@@ -9,7 +11,7 @@ struct ZBActivityDataResponse new_zb_activity_data_response() {
     return response;
 }
 
-char* zb_activity_data_response_to_string(struct ZBActivityDataResponse response) {
+char* zb_activity_data_response_to_string(ZBActivityDataResponse response) {
     const char* serialization = "ZBActivityDataResponse{found=%d, activeInDays='%d'}";
     int size = snprintf(NULL, 0, serialization, response.found, response.activeInDays);
 
@@ -26,8 +28,8 @@ char* zb_activity_data_response_to_string(struct ZBActivityDataResponse response
     return buffer;
 }
 
-struct ZBActivityDataResponse zb_activity_data_response_from_json(const json_object* j) {
-    struct ZBActivityDataResponse r = new_zb_activity_data_response();
+ZBActivityDataResponse zb_activity_data_response_from_json(const json_object* j) {
+    ZBActivityDataResponse r = new_zb_activity_data_response();
 
     r.found = *(int*)get_json_value(j, "found", (void*)0, json_type_int);
     r.activeInDays = atoi((char*)get_json_value(j, "active_in_days", (void*)"-1", json_type_string));
