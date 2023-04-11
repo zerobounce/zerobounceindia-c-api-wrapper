@@ -1,11 +1,13 @@
 #ifndef ZBACTIVITYDATARESPONSE_H
 #define ZBACTIVITYDATARESPONSE_H
 
+#include <stdbool.h>
+
 #include <json-c/json.h>
 
 typedef struct {
-    int found;
-    int activeInDays;
+    bool found;
+    int active_in_days;
 } ZBActivityDataResponse;
 
 ZBActivityDataResponse new_zb_activity_data_response();
