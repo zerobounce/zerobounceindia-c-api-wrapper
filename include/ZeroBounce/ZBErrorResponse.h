@@ -12,7 +12,7 @@ typedef struct {
 
 ZBErrorResponse new_zb_error_response();
 
-char* zb_error_response_to_string(ZBErrorResponse response);
+char* zb_error_response_to_string(ZBErrorResponse* response);
 
 ZBErrorResponse parseError(const char* error);
 

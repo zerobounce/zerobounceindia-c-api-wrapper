@@ -35,4 +35,4 @@
 # Other
 .vscode
 build
-main.cpp
+main.c

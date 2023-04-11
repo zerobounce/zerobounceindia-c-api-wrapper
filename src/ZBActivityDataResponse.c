@@ -12,9 +12,9 @@ ZBActivityDataResponse new_zb_activity_data_response() {
     return response;
 }
 
-char* zb_activity_data_response_to_string(ZBActivityDataResponse response) {
+char* zb_activity_data_response_to_string(ZBActivityDataResponse* response) {
     const char* serialization = "ZBActivityDataResponse{found=%d, active_in_days='%d'}";
-    int size = snprintf(NULL, 0, serialization, response.found, response.active_in_days);
+    int size = snprintf(NULL, 0, serialization, response->found, response->active_in_days);
 
     if (size < 0) {
         return NULL;
@@ -25,14 +25,14 @@ char* zb_activity_data_response_to_string(ZBActivityDataResponse response) {
         return NULL;
     }
 
-    snprintf(buffer, size + 1, serialization, response.found, response.active_in_days);
+    snprintf(buffer, size + 1, serialization, response->found, response->active_in_days);
     return buffer;
 }
 
 ZBActivityDataResponse zb_activity_data_response_from_json(const json_object* j) {
     ZBActivityDataResponse r = new_zb_activity_data_response();
 
-    r.found = *(int*)get_json_value(j, json_type_int, "found", (void*)0);
+    r.found = *(bool*)get_json_value(j, json_type_boolean, "found", (void*)false);
     r.active_in_days = atoi((char*)get_json_value(j, json_type_string, "active_in_days", (void*)"-1"));
 
     return r;

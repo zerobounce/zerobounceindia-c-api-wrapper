@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdbool.h>
 #include <string.h>
 
 #include "ZeroBounce/utils.h"
@@ -67,11 +68,19 @@ char* concatenate_strings(const StringVector* vec) {
 void* get_json_value(const json_object* obj, json_type type, const char* key, void* default_value) {
     json_object* value_obj = NULL;
     int* int_value;
+    bool* bool_value;
+
     if (json_object_object_get_ex(obj, key, &value_obj)) {
         if (json_object_is_type(value_obj, type)) {
             switch (type) {
                 case json_type_boolean:
-                    return (void*)json_object_get_boolean(value_obj);
+                    bool_value = (bool*) malloc(sizeof(bool));
+                    if (!bool_value) {
+                        fprintf(stderr, "Memory allocation failed.\n");
+                        exit(EXIT_FAILURE);
+                    }
+                    *bool_value = json_object_get_boolean(value_obj);
+                    return (void*)bool_value;
                 case json_type_int:
                     int_value = (int*) malloc(sizeof(int));
                     if (!int_value) {
