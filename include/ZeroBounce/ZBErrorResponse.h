@@ -1,22 +1,19 @@
 #ifndef ZBERRORRESPONSE_H
 #define ZBERRORRESPONSE_H
 
-#include <string>
-#include <vector>
-#include <unordered_map>
-#include <optional>
+#include <json-c/json.h>
 
-class ZBErrorResponse {
-    public:
-        bool success = false;
-        std::vector<std::string> errors;
+#include "utils.h"
 
-        ZBErrorResponse();
-        ZBErrorResponse(bool success, std::vector<std::string> errors);
+typedef struct {
+    int success;
+    StringVector errors;
+} ZBErrorResponse;
 
-        std::string toString();
+ZBErrorResponse new_zb_error_response();
 
-        static ZBErrorResponse parseError(std::string error);
-};
+char* zb_error_response_to_string(ZBErrorResponse response);
+
+ZBErrorResponse parseError(const char* error);
 
 #endif

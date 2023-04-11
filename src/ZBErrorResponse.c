@@ -1,0 +1,83 @@
+#include <stdio.h>
+#include <string.h>
+
+#include "ZeroBounce/ZBErrorResponse.h"
+
+ZBErrorResponse new_zb_error_response() {
+    ZBErrorResponse response;
+
+    response.success = 0;
+    response.errors = string_vector_init();
+
+    return response;
+}
+
+char* zb_error_response_to_string(ZBErrorResponse response) {
+    const char* serialization = "ZBErrorResponse{success=%d, errors=[%s]}";
+    char* errors = concatenate_strings(&response.errors);
+    int size = snprintf(NULL, 0, serialization, response.success, errors);
+
+    if (size < 0) {
+        return NULL;
+    }
+
+    char* buffer = (char*) malloc(size + 1);
+    if (!buffer) {
+        return NULL;
+    }
+
+    snprintf(buffer, size + 1, serialization, response.success, errors);
+    free(errors);
+    return buffer;
+}
+
+ZBErrorResponse parseError(const char* error) {
+    ZBErrorResponse response = new_zb_error_response();
+
+    if (!error || strlen(error) == 0) {
+        return response;
+    }
+
+    StringVector errors = string_vector_init();
+    StringVector other_messages = string_vector_init();
+
+    json_object* hash_map = json_tokener_parse(error);
+
+    json_object_object_foreach(hash_map, key, val) {
+        if (strstr(key, "error") != NULL || strstr(key, "message") != NULL) {
+            if (json_object_is_type(val, json_type_array)) {
+                size_t array_length = json_object_array_length(val);
+                for (size_t i = 0; i < array_length; i++) {
+                    json_object* item = json_object_array_get_idx(val, i);
+                    if (json_object_is_type(item, json_type_string)) {
+                        string_vector_append(&errors, json_object_get_string(item));
+                    }
+                }
+            } else if (!json_object_is_type(val, json_type_null)) {
+                string_vector_append(&errors, json_object_get_string(val));
+            }
+        } else {
+            if (strcmp(key, "success") == 0 && json_object_is_type(val, json_type_boolean)) {
+                response.success = json_object_get_boolean(val);
+            } else if (json_object_is_type(val, json_type_array)) {
+                size_t array_length = json_object_array_length(val);
+                for (size_t i = 0; i < array_length; i++) {
+                    json_object* item = json_object_array_get_idx(val, i);
+                    if (json_object_is_type(item, json_type_string)) {
+                        string_vector_append(&other_messages, json_object_get_string(item));
+                    }
+                }
+            } else if (!json_object_is_type(val, json_type_null)) {
+                string_vector_append(&other_messages, json_object_get_string(val));
+            }
+        }
+    }
+
+    for (size_t i = 0; i < other_messages.size; i++) {
+        string_vector_append(&errors, other_messages.data[i]);
+    }
+
+    response.errors = errors;
+
+    return response;
+}

@@ -70,6 +70,8 @@ void* get_json_value(const json_object* obj, json_type type, const char* key, vo
     if (json_object_object_get_ex(obj, key, &value_obj)) {
         if (json_object_is_type(value_obj, type)) {
             switch (type) {
+                case json_type_boolean:
+                    return (void*)json_object_get_boolean(value_obj);
                 case json_type_int:
                     int_value = (int*) malloc(sizeof(int));
                     if (!int_value) {
