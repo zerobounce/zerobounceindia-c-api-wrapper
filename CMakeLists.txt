@@ -12,11 +12,17 @@ FetchContent_Declare(
   GIT_REPOSITORY https://github.com/json-c/json-c.git
   GIT_TAG json-c-0.16-20220414
 )
+# Download and build libcurl
+FetchContent_Declare(
+    libcurl
+    GIT_REPOSITORY https://github.com/curl/curl.git
+    GIT_TAG curl-8_0_1
+)
 
-FetchContent_MakeAvailable(json-c)
+FetchContent_MakeAvailable(json-c libcurl)
 
 file(GLOB_RECURSE SOURCES "src/*.c")
 add_library(${PROJECT_NAME} SHARED ${SOURCES})
 target_include_directories(${PROJECT_NAME} PUBLIC include)
 
-target_link_libraries(${PROJECT_NAME} PUBLIC json-c)
+target_link_libraries(${PROJECT_NAME} PUBLIC json-c libcurl)
