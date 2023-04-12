@@ -14,6 +14,6 @@ ZBErrorResponse new_zb_error_response();
 
 char* zb_error_response_to_string(ZBErrorResponse* response);
 
-ZBErrorResponse parseError(const char* error);
+ZBErrorResponse parse_error(const char* error);
 
 #endif

@@ -90,7 +90,7 @@ void* get_json_value(const json_object* obj, json_type type, const char* key, vo
                     *int_value = json_object_get_int(value_obj);
                     return (void*)int_value;
                 case json_type_string:
-                    return (void*)json_object_get_string(value_obj);
+                    return (void*)strdup(json_object_get_string(value_obj));
                 default:
                     return NULL;
             }

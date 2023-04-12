@@ -8,6 +8,7 @@
 typedef struct {
     bool found;
     int active_in_days;
+    char* error;
 } ZBActivityDataResponse;
 
 ZBActivityDataResponse new_zb_activity_data_response();

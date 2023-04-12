@@ -31,7 +31,7 @@ char* zb_error_response_to_string(ZBErrorResponse* response) {
     return buffer;
 }
 
-ZBErrorResponse parseError(const char* error) {
+ZBErrorResponse parse_error(const char* error) {
     ZBErrorResponse response = new_zb_error_response();
 
     if (!error || strlen(error) == 0) {
