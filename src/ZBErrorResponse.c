@@ -82,6 +82,7 @@ ZBErrorResponse parse_error(const char* error) {
     }
 
     response.errors = errors;
+    json_object_put(hash_map);
 
     return response;
 }

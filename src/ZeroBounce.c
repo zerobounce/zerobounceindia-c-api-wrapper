@@ -1,9 +1,23 @@
 #include <stdio.h>
-#include <stdbool.h>
 #include <stdlib.h>
-#include <string.h>
+
+#include <curl/curl.h>
 
 #include "ZeroBounce/ZeroBounce.h"
+
+size_t write_callback(void *contents, size_t size, size_t nmemb, void *userp) {
+    size_t real_size = size * nmemb;
+    char **response = (char **)userp;
+
+    *response = realloc(*response, real_size + 1);
+    if (*response == NULL)
+        return 0; /* out of memory! */
+
+    memcpy(*response, contents, real_size);
+    response[real_size] = '\0';
+
+    return real_size;
+}
 
 ZeroBounce* new_zero_bounce_instance() {
     ZeroBounce* zb = (ZeroBounce*) malloc(sizeof(ZeroBounce));
@@ -28,21 +42,93 @@ void zero_bounce_initialize(ZeroBounce* zb, const char* api_key) {
     zb->api_key = strdup(api_key);
 }
 
-bool zero_bounce_invalid_api_key(ZeroBounce *zb, OnErrorCallback errorCallback) {
+bool zero_bounce_invalid_api_key(ZeroBounce *zb, OnErrorCallback error_callback) {
     if (zb->api_key == NULL || strlen(zb->api_key) == 0) {
-        ZBErrorResponse errorResponse = parseError(
+        ZBErrorResponse error_response = parse_error(
             "ZeroBounce is not initialized. Please call zero_bounce_initialize(zb_instance, api_key); first"
         );
-        errorCallback(errorResponse);
+        error_callback(error_response);
         return true;
     }
     return false;
 }
 
-void get_credits(ZeroBounce *zb, OnErrorCallback errorCallback) {
-    if (zero_bounce_invalid_api_key(zb, errorCallback)) return;
+void get_activity_data(
+    ZeroBounce *zb,
+    char* email,
+    OnSuccessCallback success_callback,
+    OnErrorCallback error_callback
+) {
+    if (zero_bounce_invalid_api_key(zb, error_callback)) return;
 
-    printf("%s\n", zb->api_key);
+    char url_path[256];
+    snprintf(
+        url_path, sizeof(url_path),
+        "%s/activity?api_key=%s&email=%s",
+        zb->api_base_url,
+        zb->api_key,
+        email
+    );
+
+    CURL* curl = curl_easy_init();
+    if (!curl) {
+        ZBErrorResponse error_response = parse_error(
+            "Failed to initialize libcurl"
+        );
+        error_callback(error_response);
+        return;
+    }
+
+    curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "GET");
+    curl_easy_setopt(curl, CURLOPT_URL, url_path);
+
+    struct curl_slist* headers = NULL;
+    headers = curl_slist_append(headers, "Accept: application/json");
+    curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
+
+    char* response_data = NULL;
+
+    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_callback);
+    curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void*)&response_data);
+
+    CURLcode res = curl_easy_perform(curl);
+
+    if (res != CURLE_OK) {
+        ZBErrorResponse error_response = parse_error(
+            "Failed to perform request"
+        );
+        error_callback(error_response);
+        return;
+    }
+
+    long http_code = 0;
+    curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &http_code);
+
+    if (http_code > 299) {
+        if (error_callback) {
+            ZBErrorResponse error_response = parse_error(response_data);
+            error_callback(error_response);
+        }
+    } else {
+        if (success_callback) {
+            json_object *j_obj = json_tokener_parse(response_data);
+            if (j_obj == NULL)
+            {
+                ZBErrorResponse error_response = parse_error(
+                    "Failed to parse json string"
+                );
+                error_callback(error_response);
+                return;
+            }
+
+            ZBActivityDataResponse response = zb_activity_data_response_from_json(j_obj);
+            success_callback(response);
+            json_object_put(j_obj);
+        }
+    }
+
+    curl_easy_cleanup(curl);
+    curl_slist_free_all(headers);
 }
 
 // void ZeroBounce::getCredits(

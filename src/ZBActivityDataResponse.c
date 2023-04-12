@@ -19,6 +19,7 @@ char* zb_activity_data_response_to_string(ZBActivityDataResponse* response) {
         "active_in_days='%d', "
         "error='%s'"
         "}";
+
     int size = snprintf(
         NULL, 0, serialization,
         response->found,

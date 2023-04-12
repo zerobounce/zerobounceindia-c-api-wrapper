@@ -1,22 +1,21 @@
 #ifndef ZBDELETEFILERESPONSE_H
 #define ZBDELETEFILERESPONSE_H
 
-#include <string>
+#include <stdbool.h>
 
-#include <nlohmann/json.hpp>
+#include <json-c/json.h>
 
-using json = nlohmann::json;
+typedef struct { 
+    bool success ;
+    char* message;
+    char* file_name;
+    char* file_id;
+} ZBDeleteFileResponse;
 
-class ZBDeleteFileResponse {
-    public:
-        bool success = false;
-        std::string message;
-        std::string fileName;
-        std::string fileId;
+ZBDeleteFileResponse new_zb_delete_file_response();
 
-        std::string toString();
+char* zb_delete_file_response_to_string(ZBDeleteFileResponse* response);
 
-        static ZBDeleteFileResponse from_json(const json& j);
-};
+ZBDeleteFileResponse zb_delete_file_response_from_json(const json_object* j);
 
 #endif

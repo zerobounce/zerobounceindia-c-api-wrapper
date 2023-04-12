@@ -1,6 +1,10 @@
 #ifndef ZEROBOUNCE_H
 #define ZEROBOUNCE_H
 
+#include <stdbool.h>
+#include <string.h>
+#include <time.h>
+
 #include "ZeroBounce/ZBErrorResponse.h"
 // #include "ZeroBounce/ZBCreditsResponse.h"
 // #include "ZeroBounce/ZBGetApiUsageResponse.h"
@@ -12,7 +16,8 @@
 // #include "ZeroBounce/ZBDeleteFileResponse.h"
 #include "ZeroBounce/ZBActivityDataResponse.h"
 
-typedef void (*OnErrorCallback)(ZBErrorResponse errorResponse);
+typedef void (*OnSuccessCallback)(ZBActivityDataResponse response);
+typedef void (*OnErrorCallback)(ZBErrorResponse error_response);
 
 typedef struct {
     char* return_url;
@@ -33,15 +38,22 @@ typedef struct {
 
 static ZeroBounce* zero_bounce_instance = NULL;
 
+size_t write_callback(void *contents, size_t size, size_t nmemb, void *userp);
+
 ZeroBounce* new_zero_bounce_instance();
 
 ZeroBounce* zero_bounce_get_instance();
 
 void zero_bounce_initialize(ZeroBounce* zb, const char* apiKey);
 
-bool zero_bounce_invalid_api_key(ZeroBounce *zb, OnErrorCallback errorCallback);
+bool zero_bounce_invalid_api_key(ZeroBounce *zb, OnErrorCallback error_callback);
 
-void get_credits(ZeroBounce *zb, OnErrorCallback errorCallback);
+void get_activity_data(
+    ZeroBounce *zb,
+    char* email,
+    OnSuccessCallback success_callback,
+    OnErrorCallback error_callback
+);
 
 
 // class ZeroBounce {
@@ -93,12 +105,12 @@ void get_credits(ZeroBounce *zb, OnErrorCallback errorCallback);
 //             OnErrorCallback errorCallback
 //         );
 
-//         void getApiUsage(
-//             std::tm startDate,
-//             std::tm endDate,
-//             OnSuccessCallback<ZBGetApiUsageResponse> successCallback,
-//             OnErrorCallback errorCallback
-//         );
+        // void getApiUsage(
+        //     std::tm startDate,
+        //     std::tm endDate,
+        //     OnSuccessCallback<ZBGetApiUsageResponse> successCallback,
+        //     OnErrorCallback errorCallback
+        // );
 
 //         void validate(
 //             std::string email,

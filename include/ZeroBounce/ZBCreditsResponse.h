@@ -1,19 +1,16 @@
 #ifndef ZBCREDITSRESPONSE_H
 #define ZBCREDITSRESPONSE_H
 
-#include <string>
+#include <json-c/json.h>
 
-#include <nlohmann/json.hpp>
+typedef struct {
+    int credits;
+} ZBCreditsResponse;
 
-using json = nlohmann::json;
+ZBCreditsResponse new_zb_credits_response();
 
-class ZBCreditsResponse {
-    public:
-        int credits = -1;
+char* zb_credits_response_to_string(ZBCreditsResponse* response);
 
-        std::string toString();
-
-        static ZBCreditsResponse from_json(const json& j);
-};
+ZBCreditsResponse zb_credits_response_from_json(const json_object* j);
 
 #endif

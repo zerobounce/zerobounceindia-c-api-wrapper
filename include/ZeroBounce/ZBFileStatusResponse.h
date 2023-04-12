@@ -1,28 +1,26 @@
 #ifndef ZBFILESTATUSRESPONSE_H
 #define ZBFILESTATUSRESPONSE_H
 
-#include <string>
-#include <vector>
+#include <stdbool.h>
 
-#include <nlohmann/json.hpp>
+#include <json-c/json.h>
 
-using json = nlohmann::json;
+typedef struct {
+    bool success;
+    char* message;
+    char* error_reason;
+    char* file_id;
+    char* file_name;
+    char* upload_date;
+    char* file_status;
+    char* complete_percentage;
+    char* return_url;
+} ZBFileStatusResponse;
 
-class ZBFileStatusResponse {
-    public:
-        bool success = false;
-        std::string message;
-        std::string errorReason;
-        std::string fileId;
-        std::string fileName;
-        std::string uploadDate;
-        std::string fileStatus;
-        std::string completePercentage;
-        std::string returnUrl;
+ZBFileStatusResponse new_zb_file_status_response();
 
-        std::string toString();
+char* zb_file_status_response_to_string(ZBFileStatusResponse* response);
 
-        static ZBFileStatusResponse from_json(const json& j);
-};
+ZBFileStatusResponse zb_file_status_response_from_json(const json_object* j);
 
 #endif
