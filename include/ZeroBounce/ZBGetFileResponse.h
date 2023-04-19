@@ -1,22 +1,20 @@
 #ifndef ZBGETFILERESPONSE_H
 #define ZBGETFILERESPONSE_H
 
-#include <string>
+#include <stdbool.h>
 
-#include <nlohmann/json.hpp>
+#include <json-c/json.h>
 
-using json = nlohmann::json;
+typedef struct {
+    bool success;
+    char* message;
+    char* local_file_path;
+} ZBGetFileResponse;
 
-class ZBGetFileResponse {
-    public:
-        bool success = false;
-        std::string message;
-        std::string fileName;
-        std::string localFilePath;
+ZBGetFileResponse new_zb_get_file_response();
 
-        std::string toString();
+char* zb_get_file_response_to_string(ZBGetFileResponse* response);
 
-        static ZBGetFileResponse from_json(const json& j);
-};
+ZBGetFileResponse zb_get_file_response_from_json(const json_object* j);
 
 #endif

@@ -1,9 +1,9 @@
 #ifndef ZBVALIDATESTATUS_H
 #define ZBVALIDATESTATUS_H
 
-#include "nlohmann/json.hpp"
+#include <string.h>
 
-enum ZBValidateStatus {
+typedef enum {
     Unknown,
     Valid,
     Invalid,
@@ -11,19 +11,24 @@ enum ZBValidateStatus {
     Spamtrap,
     Abuse,
     DoNotMail
-};
+} ZBValidateStatus;
 
-NLOHMANN_JSON_SERIALIZE_ENUM(
-    ZBValidateStatus,
-    {
-        {ZBValidateStatus::Unknown, "unknown"},
-        {ZBValidateStatus::Valid, "valid"},
-        {ZBValidateStatus::Invalid, "invalid"},
-        {ZBValidateStatus::CatchAll, "catch-all"},
-        {ZBValidateStatus::Spamtrap, "spamtrap"},
-        {ZBValidateStatus::Abuse, "abuse"},
-        {ZBValidateStatus::DoNotMail, "do_not_mail"}
+ZBValidateStatus status_from_string(const char* string) {
+    if (strcmp(string, "valid") == 0) {
+        return Valid;
+    } else if (strcmp(string, "invalid") == 0) {
+        return Invalid;
+    } else if (strcmp(string, "catch-all") == 0) {
+        return CatchAll;
+    } else if (strcmp(string, "spamtrap") == 0) {
+        return Spamtrap;
+    } else if (strcmp(string, "abuse") == 0) {
+        return Abuse;
+    } else if (strcmp(string, "do_not_mail") == 0) {
+        return DoNotMail;
+    } else {
+        return Unknown;
     }
-)
+}
 
 #endif

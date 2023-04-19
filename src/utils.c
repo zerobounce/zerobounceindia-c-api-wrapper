@@ -69,6 +69,8 @@ void* get_json_value(const json_object* obj, json_type type, const char* key, vo
     json_object* value_obj = NULL;
     int* int_value;
     bool* bool_value;
+    char** string_value;
+    StringVector* string_vector_value;
 
     if (json_object_object_get_ex(obj, key, &value_obj)) {
         if (json_object_is_type(value_obj, type)) {
@@ -90,7 +92,30 @@ void* get_json_value(const json_object* obj, json_type type, const char* key, vo
                     *int_value = json_object_get_int(value_obj);
                     return (void*)int_value;
                 case json_type_string:
-                    return (void*)strdup(json_object_get_string(value_obj));
+                    string_value = (char**) malloc(sizeof(char*));
+                    if (!string_value) {
+                        fprintf(stderr, "Memory allocation failed.\n");
+                        exit(EXIT_FAILURE);
+                    }
+                    *string_value = strdup(json_object_get_string(value_obj));
+                    return (void*) string_value;
+                case json_type_array:
+                    string_vector_value = (StringVector*) malloc(sizeof(StringVector));
+                    if (!string_vector_value) {
+                        fprintf(stderr, "Memory allocation failed.\n");
+                        exit(EXIT_FAILURE);
+                    }
+
+                    *string_vector_value = string_vector_init();
+                    
+                    size_t array_length = json_object_array_length(value_obj);
+                    for (size_t i = 0; i < array_length; i++) {
+                        json_object* item = json_object_array_get_idx(value_obj, i);
+                        if (json_object_is_type(item, json_type_string)) {
+                            string_vector_append(string_vector_value, json_object_get_string(item));
+                        }
+                    }
+                    return (void*) string_vector_value;
                 default:
                     return NULL;
             }

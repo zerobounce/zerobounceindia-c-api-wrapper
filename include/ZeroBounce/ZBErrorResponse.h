@@ -1,12 +1,14 @@
 #ifndef ZBERRORRESPONSE_H
 #define ZBERRORRESPONSE_H
 
+#include <stdbool.h>
+
 #include <json-c/json.h>
 
 #include "utils.h"
 
 typedef struct {
-    int success;
+    bool success;
     StringVector errors;
 } ZBErrorResponse;
 

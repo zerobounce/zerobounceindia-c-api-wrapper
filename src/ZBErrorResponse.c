@@ -6,7 +6,7 @@
 ZBErrorResponse new_zb_error_response() {
     ZBErrorResponse response;
 
-    response.success = 0;
+    response.success = false;
     response.errors = string_vector_init();
 
     return response;
