@@ -1,41 +1,59 @@
 #ifndef ZBVALIDATEBATCHRESPONSE_H
 #define ZBVALIDATEBATCHRESPONSE_H
 
-#include <string>
-#include <vector>
+#include "ZBValidateResponse.h"
 
-#include <nlohmann/json.hpp>
+typedef struct {
+    char* email_address;
+    char* ip_address;
+} ZBEmailToValidate;
 
-#include "ZeroBounce/ZBValidateResponse.h"
 
-using json = nlohmann::json;
+typedef struct {
+    char* error;
+    char* email_address;
+} ZBValidateError;
 
-struct ZBEmailToValidate {
-    std::string emailAddress;
-    std::string ipAddress;
+ZBValidateError new_zb_validate_error();
 
-    ZBEmailToValidate(const std::string& email, const std::string& ip = "") 
-        : emailAddress(email), ipAddress(ip) {}
-};
+char* zb_validate_error_to_string(ZBValidateError* response);
 
-class ZBValidateError {
-    public:
-        std::string error;
-        std::string emailAddress;
+ZBValidateError zb_validate_error_from_json(const json_object* j);
 
-        std::string toString();
 
-        static ZBValidateError from_json(const json& j);
-};
+typedef struct {
+    ZBValidateError* data;
+    size_t size;
+} ValidateErrorVector;
 
-class ZBValidateBatchResponse {
-    public:
-        std::vector<ZBValidateResponse> emailBatch;
-        std::vector<ZBValidateError> errors;
+ValidateErrorVector validate_error_vector_init();
 
-        std::string toString();
+void validate_error_vector_append(ValidateErrorVector* vector, const ZBValidateError error);
 
-        static ZBValidateBatchResponse from_json(const json& j);
-};
+void validate_error_vector_free(ValidateErrorVector* vector);
+
+
+typedef struct {
+    ZBValidateResponse* data;
+    size_t size;
+} ValidateResponseVector;
+
+ValidateResponseVector validate_response_vector_init();
+
+void validate_response_vector_append(ValidateResponseVector* vector, const ZBValidateResponse response);
+
+void validate_response_vector_free(ValidateResponseVector* vector);
+
+
+typedef struct {
+    ValidateResponseVector email_batch;
+    ValidateErrorVector errors;
+} ZBValidateBatchResponse;
+
+ZBValidateBatchResponse new_zb_validate_batch_response();
+
+char* zb_validate_batch_response_to_string(ZBValidateBatchResponse* response);
+
+ZBValidateBatchResponse zb_validate_batch_response_from_json(const json_object* j);
 
 #endif

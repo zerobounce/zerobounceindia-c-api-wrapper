@@ -1,41 +1,80 @@
 #ifndef ZBVALIDATERESPONSE_H
 #define ZBVALIDATERESPONSE_H
 
-#include <string>
+#include <stdbool.h>
 
-#include <nlohmann/json.hpp>
+#include <json-c/json.h>
 
-#include "ZeroBounce/ZBValidateStatus.h"
-#include "ZeroBounce/ZBValidateSubStatus.h"
+typedef enum {
+    Unknown,
+    Valid,
+    Invalid,
+    CatchAll,
+    Spamtrap,
+    Abuse,
+    DoNotMail
+} ZBValidateStatus;
 
-using json = nlohmann::json;
+ZBValidateStatus status_from_string(const char* string);
 
-class ZBValidateResponse {
-    public:
-        std::string address;
-        ZBValidateStatus status;
-        ZBValidateSubStatus subStatus;
-        std::string account;
-        std::string domain;
-        std::string didYouMean;
-        std::string domainAgeDays;
-        bool freeEmail = false;
-        bool mxFound = false;
-        std::string mxRecord;
-        std::string smtpProvider;
-        std::string firstName;
-        std::string lastName;
-        std::string gender;
-        std::string city;
-        std::string region;
-        std::string zipCode;
-        std::string country;
-        std::string processedAt;
-        std::string error;
 
-        std::string toString(bool isBatch = false);
+typedef enum {
+    None,
+    AntispamSystem,
+    Greylisted,
+    MailServerTemporaryError,
+    ForcibleDisconnect,
+    MailServerDidNotRespond,
+    TimeoutExceeded,
+    FailedSmtpConnection,
+    MailboxQuotaExceeded,
+    ExceptionOccurred,
+    PossibleTrap,
+    RoleBased,
+    GlobalSuppression,
+    MailboxNotFound,
+    NoDnsEntries,
+    FailedSyntaxCheck,
+    PossibleTypo,
+    UnroutableIpAddress,
+    LeadingPeriodRemoved,
+    DoesNotAcceptMail,
+    AliasAddress,
+    RoleBasedCatchAll,
+    Disposable,
+    Toxic
+} ZBValidateSubStatus;
 
-        static ZBValidateResponse from_json(const json& j);
-};
+ZBValidateSubStatus sub_status_from_string(const char* string);
+
+
+typedef struct {
+    char* address;
+    ZBValidateStatus status;
+    ZBValidateSubStatus sub_status;
+    char* account;
+    char* domain;
+    char* did_you_mean;
+    char* domain_age_days;
+    bool free_email;
+    bool mx_found;
+    char* mx_record;
+    char* smtp_provider;
+    char* first_name;
+    char* last_name;
+    char* gender;
+    char* city;
+    char* region;
+    char* zip_code;
+    char* country;
+    char* processed_at;
+    char* error;
+} ZBValidateResponse;
+
+ZBValidateResponse new_zb_validate_response();
+
+char* zb_validate_response_to_string(ZBValidateResponse* response);
+
+ZBValidateResponse zb_validate_response_from_json(const json_object* j);
 
 #endif

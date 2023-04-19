@@ -27,7 +27,7 @@ void string_vector_append(StringVector* vector, const char* str) {
 void string_vector_free(StringVector* vector) {
     if (!vector) return;
     
-    for (size_t i = 0; i < vector->size; ++i) {
+    for (size_t i = 0; i < vector->size; i++) {
         free(vector->data[i]);
     }
     free(vector->data);
@@ -38,7 +38,7 @@ void string_vector_free(StringVector* vector) {
 char* concatenate_strings(const StringVector* vec) {
     size_t total_length = 1;
 
-    for (size_t i = 0; i < vec->size; ++i) {
+    for (size_t i = 0; i < vec->size; i++) {
         total_length += strlen(vec->data[i]) + 2;
         if (i < vec->size - 1) {
             total_length += 2;
@@ -53,7 +53,7 @@ char* concatenate_strings(const StringVector* vec) {
 
     result[0] = '\0';
 
-    for (size_t i = 0; i < vec->size; ++i) {
+    for (size_t i = 0; i < vec->size; i++) {
         strcat(result, "'");
         strcat(result, vec->data[i]);
         strcat(result, "'");
