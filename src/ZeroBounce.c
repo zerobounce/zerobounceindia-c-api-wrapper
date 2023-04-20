@@ -53,21 +53,207 @@ bool zero_bounce_invalid_api_key(ZeroBounce *zb, OnErrorCallback error_callback)
     return false;
 }
 
-void get_activity_data(
+void get_credits(
     ZeroBounce *zb,
-    char* email,
-    OnSuccessCallback success_callback,
+    OnSuccessCallbackCredits success_callback,
     OnErrorCallback error_callback
 ) {
     if (zero_bounce_invalid_api_key(zb, error_callback)) return;
 
-    char url_path[256];
+    const char *url_pattern = "%s/getcredits?api_key=%s";
+
+    int url_path_len = snprintf(
+        NULL, 0, url_pattern, zb->api_base_url, zb->api_key
+    );
+
+    char *url_path = malloc(url_path_len + 1);
+    if (!url_path) {
+        fprintf(stderr, "Memory allocation failed.\n");
+        exit(EXIT_FAILURE);
+    }
+
     snprintf(
-        url_path, sizeof(url_path),
-        "%s/activity?api_key=%s&email=%s",
-        zb->api_base_url,
-        zb->api_key,
-        email
+        url_path, url_path_len + 1, url_pattern, zb->api_base_url, zb->api_key
+    );
+
+    CURL* curl = curl_easy_init();
+    if (!curl) {
+        ZBErrorResponse error_response = parse_error(
+            "Failed to initialize libcurl"
+        );
+        error_callback(error_response);
+        return;
+    }
+
+    curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "GET");
+    curl_easy_setopt(curl, CURLOPT_URL, url_path);
+
+    struct curl_slist* headers = NULL;
+    headers = curl_slist_append(headers, "Accept: application/json");
+    curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
+
+    char* response_data = NULL;
+
+    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_callback);
+    curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void*)&response_data);
+
+    CURLcode res = curl_easy_perform(curl);
+
+    if (res != CURLE_OK) {
+        ZBErrorResponse error_response = parse_error(
+            "Failed to perform request"
+        );
+        error_callback(error_response);
+        return;
+    }
+
+    long http_code = 0;
+    curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &http_code);
+
+    if (http_code > 299) {
+        if (error_callback) {
+            ZBErrorResponse error_response = parse_error(response_data);
+            error_callback(error_response);
+        }
+    } else {
+        if (success_callback) {
+            json_object *j_obj = json_tokener_parse(response_data);
+            if (j_obj == NULL)
+            {
+                ZBErrorResponse error_response = parse_error(
+                    "Failed to parse json string"
+                );
+                error_callback(error_response);
+                return;
+            }
+
+            ZBCreditsResponse response = zb_credits_response_from_json(j_obj);
+            success_callback(response);
+            json_object_put(j_obj);
+        }
+    }
+
+    curl_easy_cleanup(curl);
+    curl_slist_free_all(headers);
+}
+
+void get_api_usage(
+    ZeroBounce *zb,
+    struct tm start_date,
+    struct tm end_date,
+    OnSuccessCallbackApiUsage success_callback,
+    OnErrorCallback error_callback
+) {
+    if (zero_bounce_invalid_api_key(zb, error_callback)) return;
+
+    char* date_format = "%Y-%m-%d";
+    char start_date_str[11];
+    char end_date_str[11];
+
+    strftime(start_date_str, sizeof(start_date_str), date_format, &start_date);
+    strftime(end_date_str, sizeof(end_date_str), date_format, &end_date);
+
+    const char *url_pattern = "%s/getapiusage?api_key=%s&start_date=%s&end_date=%s";
+
+    int url_path_len = snprintf(
+        NULL, 0, url_pattern, zb->api_base_url, zb->api_key,
+        start_date_str, end_date_str
+    );
+
+    char *url_path = malloc(url_path_len + 1);
+    if (!url_path) {
+        fprintf(stderr, "Memory allocation failed.\n");
+        exit(EXIT_FAILURE);
+    }
+
+    snprintf(
+        url_path, url_path_len + 1, url_pattern, zb->api_base_url, zb->api_key,
+        start_date_str, end_date_str
+    );
+
+    CURL* curl = curl_easy_init();
+    if (!curl) {
+        ZBErrorResponse error_response = parse_error(
+            "Failed to initialize libcurl"
+        );
+        error_callback(error_response);
+        return;
+    }
+
+    curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "GET");
+    curl_easy_setopt(curl, CURLOPT_URL, url_path);
+
+    struct curl_slist* headers = NULL;
+    headers = curl_slist_append(headers, "Accept: application/json");
+    curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
+
+    char* response_data = NULL;
+
+    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_callback);
+    curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void*)&response_data);
+
+    CURLcode res = curl_easy_perform(curl);
+
+    if (res != CURLE_OK) {
+        ZBErrorResponse error_response = parse_error(
+            "Failed to perform request"
+        );
+        error_callback(error_response);
+        return;
+    }
+
+    long http_code = 0;
+    curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &http_code);
+
+    if (http_code > 299) {
+        if (error_callback) {
+            ZBErrorResponse error_response = parse_error(response_data);
+            error_callback(error_response);
+        }
+    } else {
+        if (success_callback) {
+            json_object *j_obj = json_tokener_parse(response_data);
+            if (j_obj == NULL)
+            {
+                ZBErrorResponse error_response = parse_error(
+                    "Failed to parse json string"
+                );
+                error_callback(error_response);
+                return;
+            }
+
+            ZBGetApiUsageResponse response = zb_get_api_usage_response_from_json(j_obj);
+            success_callback(response);
+            json_object_put(j_obj);
+        }
+    }
+
+    curl_easy_cleanup(curl);
+    curl_slist_free_all(headers);
+}
+
+void get_activity_data(
+    ZeroBounce *zb,
+    char* email,
+    OnSuccessCallbackActivityData success_callback,
+    OnErrorCallback error_callback
+) {
+    if (zero_bounce_invalid_api_key(zb, error_callback)) return;
+
+    const char *url_pattern = "%s/activity?api_key=%s&email=%s";
+
+    int url_path_len = snprintf(
+        NULL, 0, url_pattern, zb->api_base_url, zb->api_key, email
+    );
+
+    char *url_path = malloc(url_path_len + 1);
+    if (!url_path) {
+        fprintf(stderr, "Memory allocation failed.\n");
+        exit(EXIT_FAILURE);
+    }
+
+    snprintf(
+        url_path, url_path_len + 1, url_pattern, zb->api_base_url, zb->api_key, email
     );
 
     CURL* curl = curl_easy_init();

@@ -6,18 +6,21 @@
 #include <time.h>
 
 #include "ZeroBounce/ZBErrorResponse.h"
-// #include "ZeroBounce/ZBCreditsResponse.h"
-// #include "ZeroBounce/ZBGetApiUsageResponse.h"
-// #include "ZeroBounce/ZBValidateResponse.h"
-// #include "ZeroBounce/ZBValidateBatchResponse.h"
-// #include "ZeroBounce/ZBSendFileResponse.h"
-// #include "ZeroBounce/ZBFileStatusResponse.h"
-// #include "ZeroBounce/ZBGetFileResponse.h"
-// #include "ZeroBounce/ZBDeleteFileResponse.h"
+#include "ZeroBounce/ZBCreditsResponse.h"
+#include "ZeroBounce/ZBGetApiUsageResponse.h"
+#include "ZeroBounce/ZBValidateResponse.h"
+#include "ZeroBounce/ZBValidateBatchResponse.h"
+#include "ZeroBounce/ZBSendFileResponse.h"
+#include "ZeroBounce/ZBFileStatusResponse.h"
+#include "ZeroBounce/ZBGetFileResponse.h"
+#include "ZeroBounce/ZBDeleteFileResponse.h"
 #include "ZeroBounce/ZBActivityDataResponse.h"
 
-typedef void (*OnSuccessCallback)(ZBActivityDataResponse response);
 typedef void (*OnErrorCallback)(ZBErrorResponse error_response);
+typedef void (*OnSuccessCallbackCredits)(ZBCreditsResponse response);
+typedef void (*OnSuccessCallbackActivityData)(ZBActivityDataResponse response);
+typedef void (*OnSuccessCallbackApiUsage)(ZBGetApiUsageResponse response);
+
 
 typedef struct {
     char* return_url;
@@ -48,10 +51,24 @@ void zero_bounce_initialize(ZeroBounce* zb, const char* apiKey);
 
 bool zero_bounce_invalid_api_key(ZeroBounce *zb, OnErrorCallback error_callback);
 
+void get_credits(
+    ZeroBounce *zb,
+    OnSuccessCallbackCredits success_callback,
+    OnErrorCallback error_callback
+);
+
 void get_activity_data(
     ZeroBounce *zb,
     char* email,
-    OnSuccessCallback success_callback,
+    OnSuccessCallbackActivityData success_callback,
+    OnErrorCallback error_callback
+);
+
+void get_api_usage(
+    ZeroBounce *zb,
+    struct tm start_date,
+    struct tm end_date,
+    OnSuccessCallbackApiUsage success_callback,
     OnErrorCallback error_callback
 );
 
