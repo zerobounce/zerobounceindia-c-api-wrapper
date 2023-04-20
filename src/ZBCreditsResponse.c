@@ -40,7 +40,7 @@ char* zb_credits_response_to_string(ZBCreditsResponse* response) {
 ZBCreditsResponse zb_credits_response_from_json(const json_object* j) {
     ZBCreditsResponse r = new_zb_credits_response();
 
-    r.credits = atoi((char*)get_json_value(j, json_type_string, "Credits", (void*)"-1"));
+    r.credits = atoi(*(char**)get_json_value(j, json_type_string, "Credits", &(char*){"-1"}));
 
     return r;
 }

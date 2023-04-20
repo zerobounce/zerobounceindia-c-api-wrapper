@@ -73,14 +73,14 @@ ZBFileStatusResponse zb_file_status_response_from_json(const json_object* j) {
     ZBFileStatusResponse r = new_zb_file_status_response();
 
     r.success = *(bool*)get_json_value(j, json_type_boolean, "success", &(bool){false});
-    r.message = (char*)get_json_value(j, json_type_string, "message", (void*)"");
-    r.error_reason = (char*)get_json_value(j, json_type_string, "error_reason", (void*)"");
-    r.file_id = (char*)get_json_value(j, json_type_string, "file_id", (void*)"");
-    r.file_name = (char*)get_json_value(j, json_type_string, "file_name", (void*)"");
-    r.upload_date = (char*)get_json_value(j, json_type_string, "upload_date", (void*)"");
-    r.file_status = (char*)get_json_value(j, json_type_string, "file_status", (void*)"");
-    r.complete_percentage = (char*)get_json_value(j, json_type_string, "complete_percentage", (void*)"");
-    r.return_url = (char*)get_json_value(j, json_type_string, "return_url", (void*)"");
+    r.message = *(char**)get_json_value(j, json_type_string, "message", &(char*){""});
+    r.error_reason = *(char**)get_json_value(j, json_type_string, "error_reason", &(char*){""});
+    r.file_id = *(char**)get_json_value(j, json_type_string, "file_id", &(char*){""});
+    r.file_name = *(char**)get_json_value(j, json_type_string, "file_name", &(char*){""});
+    r.upload_date = *(char**)get_json_value(j, json_type_string, "upload_date", &(char*){""});
+    r.file_status = *(char**)get_json_value(j, json_type_string, "file_status", &(char*){""});
+    r.complete_percentage = *(char**)get_json_value(j, json_type_string, "complete_percentage", &(char*){""});
+    r.return_url = *(char**)get_json_value(j, json_type_string, "return_url", &(char*){""});
 
     return r;
 }

@@ -60,11 +60,11 @@ ZBSendFileResponse zb_send_file_response_from_json(const json_object* j) {
         r.message = *(StringVector*)get_json_value(j, json_type_array, "message", &default_value);
         string_vector_free(&default_value);
     } else {
-        string_vector_append(&r.message, (char*)get_json_value(j, json_type_string, "message", (void*)""));
+        string_vector_append(&r.message, *(char**)get_json_value(j, json_type_string, "message", &(char*){""}));
     }
 
-    r.file_name = (char*)get_json_value(j, json_type_string, "file_name", (void*)"");
-    r.file_id = (char*)get_json_value(j, json_type_string, "file_id", (void*)"");
+    r.file_name = *(char**)get_json_value(j, json_type_string, "file_name", &(char*){""});
+    r.file_id = *(char**)get_json_value(j, json_type_string, "file_id", &(char*){""});
 
     return r;
 }

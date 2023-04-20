@@ -187,30 +187,30 @@ char* zb_validate_response_to_string(ZBValidateResponse* response) {
 ZBValidateResponse zb_validate_response_from_json(const json_object* j) {
     ZBValidateResponse r = new_zb_validate_response();
 
-    r.address = (char*)get_json_value(j, json_type_string, "address", (void*)"");
-    r.status = status_from_string((char*)get_json_value(j, json_type_string, "status", (void*)""));
-    r.sub_status = sub_status_from_string((char*)get_json_value(j, json_type_string, "sub_status", (void*)""));
-    r.account = (char*)get_json_value(j, json_type_string, "account", (void*)"");
-    r.domain = (char*)get_json_value(j, json_type_string, "domain", (void*)"");
-    r.did_you_mean = (char*)get_json_value(j, json_type_string, "did_you_mean", (void*)"");
-    r.domain_age_days = (char*)get_json_value(j, json_type_string, "domain_age_days", (void*)"");
+    r.address = *(char**)get_json_value(j, json_type_string, "address", &(char*){""});
+    r.status = status_from_string(*(char**)get_json_value(j, json_type_string, "status", &(char*){""}));
+    r.sub_status = sub_status_from_string(*(char**)get_json_value(j, json_type_string, "sub_status", &(char*){""}));
+    r.account = *(char**)get_json_value(j, json_type_string, "account", &(char*){""});
+    r.domain = *(char**)get_json_value(j, json_type_string, "domain", &(char*){""});
+    r.did_you_mean = *(char**)get_json_value(j, json_type_string, "did_you_mean", &(char*){""});
+    r.domain_age_days = *(char**)get_json_value(j, json_type_string, "domain_age_days", &(char*){""});
     r.free_email = *(bool*)get_json_value(j, json_type_boolean, "free_email", &(bool){false});
 
-    if (strcasecmp((char*)get_json_value(j, json_type_string, "mx_found", (void*)"false"), "true") == 0) {
+    if (strcasecmp(*(char**)get_json_value(j, json_type_string, "mx_found", &(char*){"false"}), "true") == 0) {
         r.mx_found = true;
     }
 
-    r.mx_record = (char*)get_json_value(j, json_type_string, "mx_record", (void*)"");
-    r.smtp_provider = (char*)get_json_value(j, json_type_string, "smtp_provider", (void*)"");
-    r.first_name = (char*)get_json_value(j, json_type_string, "firstname", (void*)"");
-    r.last_name = (char*)get_json_value(j, json_type_string, "lastname", (void*)"");
-    r.gender = (char*)get_json_value(j, json_type_string, "gender", (void*)"");
-    r.city = (char*)get_json_value(j, json_type_string, "city", (void*)"");
-    r.region = (char*)get_json_value(j, json_type_string, "region", (void*)"");
-    r.zip_code = (char*)get_json_value(j, json_type_string, "zipcode", (void*)"");
-    r.country = (char*)get_json_value(j, json_type_string, "country", (void*)"");
-    r.processed_at = (char*)get_json_value(j, json_type_string, "processed_at", (void*)"");
-    r.error = (char*)get_json_value(j, json_type_string, "error", (void*)"");
+    r.mx_record = *(char**)get_json_value(j, json_type_string, "mx_record", &(char*){""});
+    r.smtp_provider = *(char**)get_json_value(j, json_type_string, "smtp_provider", &(char*){""});
+    r.first_name = *(char**)get_json_value(j, json_type_string, "firstname", &(char*){""});
+    r.last_name = *(char**)get_json_value(j, json_type_string, "lastname", &(char*){""});
+    r.gender = *(char**)get_json_value(j, json_type_string, "gender", &(char*){""});
+    r.city = *(char**)get_json_value(j, json_type_string, "city", &(char*){""});
+    r.region = *(char**)get_json_value(j, json_type_string, "region", &(char*){""});
+    r.zip_code = *(char**)get_json_value(j, json_type_string, "zipcode", &(char*){""});
+    r.country = *(char**)get_json_value(j, json_type_string, "country", &(char*){""});
+    r.processed_at = *(char**)get_json_value(j, json_type_string, "processed_at", &(char*){""});
+    r.error = *(char**)get_json_value(j, json_type_string, "error", &(char*){""});
 
     return r;
 }

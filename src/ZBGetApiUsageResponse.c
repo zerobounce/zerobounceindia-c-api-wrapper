@@ -204,9 +204,9 @@ ZBGetApiUsageResponse zb_get_api_usage_response_from_json(const json_object* j) 
     r.sub_status_alternate = *(int*)get_json_value(j, json_type_int, "sub_status_alternate", &(int){0});
     r.sub_status_blocked = *(int*)get_json_value(j, json_type_int, "sub_status_blocked", &(int){0});
     r.sub_status_allowed = *(int*)get_json_value(j, json_type_int, "sub_status_allowed", &(int){0});
-    r.start_date = (char*)get_json_value(j, json_type_string, "start_date", (void*)"");
-    r.end_date = (char*)get_json_value(j, json_type_string, "end_date", (void*)"");
-    r.error = (char*)get_json_value(j, json_type_string, "error", (void*)"");
+    r.start_date = *(char**)get_json_value(j, json_type_string, "start_date", &(char*){""});
+    r.end_date = *(char**)get_json_value(j, json_type_string, "end_date", &(char*){""});
+    r.error = *(char**)get_json_value(j, json_type_string, "error", &(char*){""});
 
     return r;
 }

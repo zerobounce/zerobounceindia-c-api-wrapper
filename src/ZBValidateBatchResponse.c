@@ -149,8 +149,8 @@ char* zb_validate_error_to_string(ZBValidateError* validate_error) {
 ZBValidateError zb_validate_error_from_json(const json_object* j) {
     ZBValidateError validate_error = new_zb_validate_error();
 
-    validate_error.error = (char*)get_json_value(j, json_type_string, "error", (void*)"");
-    validate_error.email_address = (char*)get_json_value(j, json_type_string, "email_address", (void*)"");
+    validate_error.error = *(char**)get_json_value(j, json_type_string, "error", &(char*){""});
+    validate_error.email_address = *(char**)get_json_value(j, json_type_string, "email_address", &(char*){""});
 
     return validate_error;
 }

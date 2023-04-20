@@ -16,7 +16,7 @@ ZBActivityDataResponse new_zb_activity_data_response() {
 char* zb_activity_data_response_to_string(ZBActivityDataResponse* response) {
     const char *serialization = "ZBActivityDataResponse{"
         "found=%d, "
-        "active_in_days='%d', "
+        "active_in_days=%d, "
         "error='%s'"
         "}";
 
@@ -49,8 +49,8 @@ ZBActivityDataResponse zb_activity_data_response_from_json(const json_object* j)
     ZBActivityDataResponse r = new_zb_activity_data_response();
 
     r.found = *(bool*)get_json_value(j, json_type_boolean, "found", &(bool){false});
-    r.active_in_days = atoi((char*)get_json_value(j, json_type_string, "active_in_days", (void*)"-1"));
-    r.error = (char*)get_json_value(j, json_type_string, "error", (void*)"");
+    r.active_in_days = atoi(*(char**)get_json_value(j, json_type_string, "active_in_days", &(char*){"-1"}));
+    r.error = *(char**)get_json_value(j, json_type_string, "error", &(char*){""});
 
     return r;
 }
