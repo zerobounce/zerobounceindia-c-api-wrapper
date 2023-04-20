@@ -8,6 +8,20 @@ typedef struct {
     char* ip_address;
 } ZBEmailToValidate;
 
+ZBEmailToValidate new_zb_email_to_validate();
+
+
+typedef struct {
+    ZBEmailToValidate* data;
+    size_t size;
+} EmailToValidateVector;
+
+EmailToValidateVector email_to_validate_vector_init();
+
+void email_to_validate_vector_append(EmailToValidateVector* vector, const ZBEmailToValidate email);
+
+void email_to_validate_vector_free(EmailToValidateVector* vector);
+
 
 typedef struct {
     char* error;

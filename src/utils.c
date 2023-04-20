@@ -54,9 +54,7 @@ char* concatenate_strings(const StringVector* vec) {
     result[0] = '\0';
 
     for (size_t i = 0; i < vec->size; i++) {
-        strcat(result, "'");
         strcat(result, vec->data[i]);
-        strcat(result, "'");
         if (i < vec->size - 1) {
             strcat(result, ", ");
         }

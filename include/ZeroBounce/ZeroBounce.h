@@ -18,8 +18,10 @@
 
 typedef void (*OnErrorCallback)(ZBErrorResponse error_response);
 typedef void (*OnSuccessCallbackCredits)(ZBCreditsResponse response);
-typedef void (*OnSuccessCallbackActivityData)(ZBActivityDataResponse response);
 typedef void (*OnSuccessCallbackApiUsage)(ZBGetApiUsageResponse response);
+typedef void (*OnSuccessCallbackValidate)(ZBValidateResponse response);
+typedef void (*OnSuccessCallbackValidateBatch)(ZBValidateBatchResponse response);
+typedef void (*OnSuccessCallbackActivityData)(ZBActivityDataResponse response);
 
 
 typedef struct {
@@ -41,7 +43,7 @@ typedef struct {
 
 static ZeroBounce* zero_bounce_instance = NULL;
 
-size_t write_callback(void *contents, size_t size, size_t nmemb, void *userp);
+static size_t write_callback(void *data, size_t size, size_t nmemb, void *clientp);
 
 ZeroBounce* new_zero_bounce_instance();
 
@@ -57,18 +59,33 @@ void get_credits(
     OnErrorCallback error_callback
 );
 
-void get_activity_data(
-    ZeroBounce *zb,
-    char* email,
-    OnSuccessCallbackActivityData success_callback,
-    OnErrorCallback error_callback
-);
-
 void get_api_usage(
     ZeroBounce *zb,
     struct tm start_date,
     struct tm end_date,
     OnSuccessCallbackApiUsage success_callback,
+    OnErrorCallback error_callback
+);
+
+void validate_email(
+    ZeroBounce *zb,
+    char* email,
+    char* ip_address,
+    OnSuccessCallbackValidate success_callback,
+    OnErrorCallback error_callback
+);
+
+void validate_batch(
+    ZeroBounce *zb,
+    EmailToValidateVector email_batch,
+    OnSuccessCallbackValidateBatch success_callback,
+    OnErrorCallback error_callback
+);
+
+void get_activity_data(
+    ZeroBounce *zb,
+    char* email,
+    OnSuccessCallbackActivityData success_callback,
     OnErrorCallback error_callback
 );
 

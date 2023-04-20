@@ -13,6 +13,39 @@ ZBEmailToValidate new_zb_email_to_validate() {
     return response;
 }
 
+EmailToValidateVector email_to_validate_vector_init() {
+    EmailToValidateVector vector;
+    vector.size = 0;
+    vector.data = NULL;
+    return vector;
+}
+
+void email_to_validate_vector_append(EmailToValidateVector* vector, const ZBEmailToValidate email) {
+    if (!vector) return;
+    
+    vector->data = (ZBEmailToValidate*) realloc(vector->data, (vector->size + 1) * sizeof(ZBEmailToValidate));
+    if (!vector->data) {
+        fprintf(stderr, "Memory allocation failed.\n");
+        exit(EXIT_FAILURE);
+    }
+    
+    vector->data[vector->size].email_address = strdup(email.email_address);
+    vector->data[vector->size].ip_address = strdup(email.ip_address);
+    vector->size++;
+}
+
+void email_to_validate_vector_free(EmailToValidateVector* vector) {
+    if (!vector) return;
+    
+    for (size_t i = 0; i < vector->size; i++) {
+        free(vector->data[i].email_address);
+        free(vector->data[i].ip_address);
+    }
+    free(vector->data);
+    vector->data = NULL;
+    vector->size = 0;
+}
+
 ValidateErrorVector validate_error_vector_init() {
     ValidateErrorVector vector;
     vector.size = 0;

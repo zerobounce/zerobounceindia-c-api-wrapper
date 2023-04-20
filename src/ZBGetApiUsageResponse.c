@@ -75,8 +75,12 @@ char* zb_get_api_usage_response_to_string(ZBGetApiUsageResponse* response) {
         ", sub_status_mailbox_quota_exceeded=%d"
         ", sub_status_forcible_disconnect=%d"
         ", sub_status_failed_smtp_connection=%d"
-        ", startDate='%s'"
-        ", endDate='%s'"
+        ", sub_status_mx_forward=%d"
+        ", sub_status_alternate=%d"
+        ", sub_status_blocked=%d"
+        ", sub_status_allowed=%d"
+        ", start_date='%s'"
+        ", end_date='%s'"
         ", error='%s'"
         "}";
 
