@@ -21,6 +21,7 @@ typedef void (*OnSuccessCallbackCredits)(ZBCreditsResponse response);
 typedef void (*OnSuccessCallbackApiUsage)(ZBGetApiUsageResponse response);
 typedef void (*OnSuccessCallbackValidate)(ZBValidateResponse response);
 typedef void (*OnSuccessCallbackValidateBatch)(ZBValidateBatchResponse response);
+typedef void (*OnSuccessCallbackSendFile)(ZBSendFileResponse response);
 typedef void (*OnSuccessCallbackActivityData)(ZBActivityDataResponse response);
 
 
@@ -33,6 +34,8 @@ typedef struct {
     bool has_header_row;
     bool remove_duplicate;
 } SendFileOptions;
+
+SendFileOptions new_send_file_options();
 
 typedef struct {
     char* api_key;
@@ -52,6 +55,16 @@ ZeroBounce* zero_bounce_get_instance();
 void zero_bounce_initialize(ZeroBounce* zb, const char* apiKey);
 
 bool zero_bounce_invalid_api_key(ZeroBounce *zb, OnErrorCallback error_callback);
+
+static void send_file_internal(
+    ZeroBounce *zb,
+    bool scoring,
+    char* file_path,
+    int email_address_column_index,
+    SendFileOptions options,
+    OnSuccessCallbackSendFile success_callback,
+    OnErrorCallback error_callback
+);
 
 void get_credits(
     ZeroBounce *zb,
@@ -79,6 +92,15 @@ void validate_batch(
     ZeroBounce *zb,
     EmailToValidateVector email_batch,
     OnSuccessCallbackValidateBatch success_callback,
+    OnErrorCallback error_callback
+);
+
+void send_file(
+    ZeroBounce *zb,
+    char* file_path,
+    int email_address_column_index,
+    SendFileOptions options,
+    OnSuccessCallbackSendFile success_callback,
     OnErrorCallback error_callback
 );
 

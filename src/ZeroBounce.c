@@ -26,6 +26,22 @@ static size_t write_callback(void *data, size_t size, size_t nmemb, void *client
   return real_size;
 }
 
+
+SendFileOptions new_send_file_options() {
+    SendFileOptions options;
+
+    options.return_url = "";
+    options.first_name_column = 0;
+    options.last_name_column = 0;
+    options.gender_column = 0;
+    options.ip_address_column = 0;
+    options.has_header_row = true;
+    options.remove_duplicate = true;
+
+    return options;
+}
+
+
 ZeroBounce* new_zero_bounce_instance() {
     ZeroBounce* zb = (ZeroBounce*) malloc(sizeof(ZeroBounce));
     zb->api_key = NULL;
@@ -35,6 +51,7 @@ ZeroBounce* new_zero_bounce_instance() {
     return zb;
 }
 
+
 ZeroBounce* zero_bounce_get_instance() {
     if (zero_bounce_instance == NULL) {
         zero_bounce_instance = new_zero_bounce_instance();
@@ -42,12 +59,14 @@ ZeroBounce* zero_bounce_get_instance() {
     return zero_bounce_instance;
 }
 
+
 void zero_bounce_initialize(ZeroBounce* zb, const char* api_key) {
     if (zb->api_key) {
         free(zb->api_key);
     }
     zb->api_key = strdup(api_key);
 }
+
 
 bool zero_bounce_invalid_api_key(ZeroBounce *zb, OnErrorCallback error_callback) {
     if (zb->api_key == NULL || strlen(zb->api_key) == 0) {
@@ -59,6 +78,149 @@ bool zero_bounce_invalid_api_key(ZeroBounce *zb, OnErrorCallback error_callback)
     }
     return false;
 }
+
+
+static void send_file_internal(
+    ZeroBounce *zb,
+    bool scoring,
+    char* file_path,
+    int email_address_column_index,
+    SendFileOptions options,
+    OnSuccessCallbackSendFile success_callback,
+    OnErrorCallback error_callback
+) {
+    if (zero_bounce_invalid_api_key(zb, error_callback)) return;
+
+    const char *url_pattern = "%s/sendFile";
+    const char* base_url = scoring ? zb->bulk_api_scoring_base_url : zb->bulk_api_base_url;
+
+    int url_path_len = snprintf(
+        NULL, 0, url_pattern, base_url
+    );
+
+    char *url_path = malloc(url_path_len + 1);
+    if (!url_path) {
+        fprintf(stderr, "Memory allocation failed.\n");
+        exit(EXIT_FAILURE);
+    }
+
+    snprintf(
+        url_path, url_path_len + 1, url_pattern, base_url
+    );
+
+    CURL* curl = curl_easy_init();
+    if (!curl) {
+        error_callback(parse_error("Failed to initialize libcurl"));
+        return;
+    }
+
+    curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "POST");
+    curl_easy_setopt(curl, CURLOPT_URL, url_path);
+
+    struct curl_slist* headers = NULL;
+    headers = curl_slist_append(headers, "Content-Type: multipart/form-data");
+    curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
+
+    curl_mime *multipart = curl_mime_init(curl);
+
+    curl_mimepart *part = curl_mime_addpart(multipart);
+    curl_mime_name(part, "api_key");
+    curl_mime_data(part, zb->api_key, CURL_ZERO_TERMINATED);
+
+    part = curl_mime_addpart(multipart);
+    curl_mime_name(part, "file");
+    curl_mime_filedata(part, file_path);
+
+    char int_str_option[10];
+
+    part = curl_mime_addpart(multipart);
+    curl_mime_name(part, "email_address_column");
+    sprintf(int_str_option, "%d", email_address_column_index);
+    curl_mime_data(part, int_str_option, CURL_ZERO_TERMINATED);
+
+    if (!scoring) {
+        if (options.first_name_column > 0) {
+            part = curl_mime_addpart(multipart);
+            curl_mime_name(part, "first_name_column");
+            sprintf(int_str_option, "%d", options.first_name_column);
+            curl_mime_data(part, int_str_option, CURL_ZERO_TERMINATED);
+        }
+        if (options.last_name_column > 0) {
+            part = curl_mime_addpart(multipart);
+            curl_mime_name(part, "last_name_column");
+            sprintf(int_str_option, "%d", options.last_name_column);
+            curl_mime_data(part, int_str_option, CURL_ZERO_TERMINATED);
+        }
+        if (options.gender_column > 0) {
+            part = curl_mime_addpart(multipart);
+            curl_mime_name(part, "gender_column");
+            sprintf(int_str_option, "%d", options.gender_column);
+            curl_mime_data(part, int_str_option, CURL_ZERO_TERMINATED);
+        }
+        if (options.ip_address_column > 0) {
+            part = curl_mime_addpart(multipart);
+            curl_mime_name(part, "ip_address_column");
+            sprintf(int_str_option, "%d", options.ip_address_column);
+            curl_mime_data(part, int_str_option, CURL_ZERO_TERMINATED);
+        }
+    }
+
+    if (!strlen(options.return_url) == 0) {
+        part = curl_mime_addpart(multipart);
+        curl_mime_name(part, "return_url");
+        curl_mime_data(part, options.return_url, CURL_ZERO_TERMINATED);
+    }
+
+    part = curl_mime_addpart(multipart);
+    curl_mime_name(part, "has_header_row");
+    curl_mime_data(part, options.has_header_row ? "true" : "false", CURL_ZERO_TERMINATED);
+
+    part = curl_mime_addpart(multipart);
+    curl_mime_name(part, "remove_duplicate");
+    curl_mime_data(part, options.has_header_row ? "true" : "false", CURL_ZERO_TERMINATED);
+
+    curl_easy_setopt(curl, CURLOPT_MIMEPOST, multipart);
+
+    memory response_data = {0};
+
+    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_callback);
+    curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void*)&response_data);
+
+    CURLcode res = curl_easy_perform(curl);
+
+    if (res != CURLE_OK) {
+        error_callback(parse_error("Failed to perform request"));
+        return;
+    }
+
+    long http_code = 0;
+    curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &http_code);
+
+    if (http_code > 299) {
+        if (error_callback) {
+            error_callback(parse_error(response_data.response));
+        }
+    } else {
+        if (success_callback) {
+            json_object *j_obj = json_tokener_parse(response_data.response);
+            if (j_obj == NULL) {
+                error_callback(parse_error("Failed to parse json string"));
+                return;
+            }
+
+            success_callback(zb_send_file_response_from_json(j_obj));
+            json_object_put(j_obj);
+        }
+    }
+
+    free(url_path);
+    free(response_data.response);
+
+    curl_easy_cleanup(curl);
+    curl_slist_free_all(headers);
+    curl_mime_free(multipart);
+}
+
 
 void get_credits(
     ZeroBounce *zb,
@@ -134,6 +296,7 @@ void get_credits(
     curl_easy_cleanup(curl);
     curl_slist_free_all(headers);
 }
+
 
 void get_api_usage(
     ZeroBounce *zb,
@@ -221,6 +384,7 @@ void get_api_usage(
     curl_slist_free_all(headers);
 }
 
+
 void validate_email(
     ZeroBounce *zb,
     char* email,
@@ -297,6 +461,7 @@ void validate_email(
     curl_easy_cleanup(curl);
     curl_slist_free_all(headers);
 }
+
 
 void validate_batch(
     ZeroBounce *zb,
@@ -391,6 +556,19 @@ void validate_batch(
     curl_easy_cleanup(curl);
     curl_slist_free_all(headers);
 }
+
+
+void send_file(
+    ZeroBounce *zb,
+    char* file_path,
+    int email_address_column_index,
+    SendFileOptions options,
+    OnSuccessCallbackSendFile success_callback,
+    OnErrorCallback error_callback
+) {
+    send_file_internal(zb, false, file_path, email_address_column_index, options, success_callback, error_callback);
+}
+
 
 void get_activity_data(
     ZeroBounce *zb,
