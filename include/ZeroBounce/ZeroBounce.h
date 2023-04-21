@@ -22,6 +22,9 @@ typedef void (*OnSuccessCallbackApiUsage)(ZBGetApiUsageResponse response);
 typedef void (*OnSuccessCallbackValidate)(ZBValidateResponse response);
 typedef void (*OnSuccessCallbackValidateBatch)(ZBValidateBatchResponse response);
 typedef void (*OnSuccessCallbackSendFile)(ZBSendFileResponse response);
+typedef void (*OnSuccessCallbackFileStatus)(ZBFileStatusResponse response);
+typedef void (*OnSuccessCallbackGetFile)(ZBGetFileResponse response);
+typedef void (*OnSuccessCallbackDeleteFile)(ZBDeleteFileResponse response);
 typedef void (*OnSuccessCallbackActivityData)(ZBActivityDataResponse response);
 
 
@@ -54,7 +57,7 @@ ZeroBounce* zero_bounce_get_instance();
 
 void zero_bounce_initialize(ZeroBounce* zb, const char* apiKey);
 
-bool zero_bounce_invalid_api_key(ZeroBounce *zb, OnErrorCallback error_callback);
+static bool zero_bounce_invalid_api_key(ZeroBounce *zb, OnErrorCallback error_callback);
 
 static void send_file_internal(
     ZeroBounce *zb,
@@ -63,6 +66,31 @@ static void send_file_internal(
     int email_address_column_index,
     SendFileOptions options,
     OnSuccessCallbackSendFile success_callback,
+    OnErrorCallback error_callback
+);
+
+static void file_status_internal(
+    ZeroBounce *zb,
+    bool scoring,
+    char* file_id,
+    OnSuccessCallbackFileStatus success_callback,
+    OnErrorCallback error_callback
+);
+
+static void get_file_internal(
+    ZeroBounce *zb,
+    bool scoring,
+    char* file_id,
+    char* local_download_path,
+    OnSuccessCallbackGetFile success_callback,
+    OnErrorCallback error_callback
+);
+
+static void delete_file_internal(
+    ZeroBounce *zb,
+    bool scoring,
+    char* file_id,
+    OnSuccessCallbackDeleteFile success_callback,
     OnErrorCallback error_callback
 );
 
@@ -104,142 +132,64 @@ void send_file(
     OnErrorCallback error_callback
 );
 
+void file_status(
+    ZeroBounce *zb,
+    char* file_id,
+    OnSuccessCallbackFileStatus success_callback,
+    OnErrorCallback error_callback
+);
+
+void get_file(
+    ZeroBounce *zb,
+    char* file_id,
+    char* local_download_path,
+    OnSuccessCallbackGetFile success_callback,
+    OnErrorCallback error_callback
+);
+
+void delete_file(
+    ZeroBounce *zb,
+    char* file_id,
+    OnSuccessCallbackDeleteFile success_callback,
+    OnErrorCallback error_callback
+);
+
+void scoring_send_file(
+    ZeroBounce *zb,
+    char* file_path,
+    int email_address_column_index,
+    SendFileOptions options,
+    OnSuccessCallbackSendFile success_callback,
+    OnErrorCallback error_callback
+);
+
+void scoring_file_status(
+    ZeroBounce *zb,
+    char* file_id,
+    OnSuccessCallbackFileStatus success_callback,
+    OnErrorCallback error_callback
+);
+
+void scoring_get_file(
+    ZeroBounce *zb,
+    char* file_id,
+    char* local_download_path,
+    OnSuccessCallbackGetFile success_callback,
+    OnErrorCallback error_callback
+);
+
+void scoring_delete_file(
+    ZeroBounce *zb,
+    char* file_id,
+    OnSuccessCallbackDeleteFile success_callback,
+    OnErrorCallback error_callback
+);
+
 void get_activity_data(
     ZeroBounce *zb,
     char* email,
     OnSuccessCallbackActivityData success_callback,
     OnErrorCallback error_callback
 );
-
-
-// class ZeroBounce {
-//     private:
-
-//         bool invalidApiKey(OnErrorCallback errorCallback);
-
-//         template <typename T>
-//         void sendRequest(
-//             std::string urlPath,
-//             OnSuccessCallback<T> successCallback,
-//             OnErrorCallback errorCallback
-//         );
-
-//         void sendFileInternal(
-//             bool scoring,
-//             std::string filePath,
-//             int emailAddressColumnIndex,
-//             SendFileOptions options,
-//             OnSuccessCallback<ZBSendFileResponse> successCallback,
-//             OnErrorCallback errorCallback
-//         );
-
-//         void fileStatusInternal(
-//             bool scoring,
-//             std::string fileId,
-//             OnSuccessCallback<ZBFileStatusResponse> successCallback,
-//             OnErrorCallback errorCallback
-//         );
-
-//         void getFileInternal(
-//             bool scoring,
-//             std::string fileId,
-//             std::string localDownloadPath,
-//             OnSuccessCallback<ZBGetFileResponse> successCallback,
-//             OnErrorCallback errorCallback
-//         );
-
-//         void deleteFileInternal(
-//             bool scoring,
-//             std::string fileId,
-//             OnSuccessCallback<ZBDeleteFileResponse> successCallback,
-//             OnErrorCallback errorCallback
-//         );
-    
-//     public:
-//         void getCredits(
-//             OnSuccessCallback<ZBCreditsResponse> successCallback,
-//             OnErrorCallback errorCallback
-//         );
-
-        // void getApiUsage(
-        //     std::tm startDate,
-        //     std::tm endDate,
-        //     OnSuccessCallback<ZBGetApiUsageResponse> successCallback,
-        //     OnErrorCallback errorCallback
-        // );
-
-//         void validate(
-//             std::string email,
-//             std::string ipAddress,
-//             OnSuccessCallback<ZBValidateResponse> successCallback,
-//             OnErrorCallback errorCallback
-//         );
-
-//         void validateBatch(
-//             std::vector<ZBEmailToValidate> emailBatch,
-//             OnSuccessCallback<ZBValidateBatchResponse> successCallback,
-//             OnErrorCallback errorCallback
-//         );
-
-//         void sendFile(
-//             std::string filePath,
-//             int emailAddressColumnIndex,
-//             SendFileOptions options,
-//             OnSuccessCallback<ZBSendFileResponse> successCallback,
-//             OnErrorCallback errorCallback
-//         );
-
-//         void fileStatus(
-//             std::string fileId,
-//             OnSuccessCallback<ZBFileStatusResponse> successCallback,
-//             OnErrorCallback errorCallback
-//         );
-
-//         void getFile(
-//             std::string fileId,
-//             std::string localDownloadPath,
-//             OnSuccessCallback<ZBGetFileResponse> successCallback,
-//             OnErrorCallback errorCallback
-//         );
-
-//         void deleteFile(
-//             std::string fileId,
-//             OnSuccessCallback<ZBDeleteFileResponse> successCallback,
-//             OnErrorCallback errorCallback
-//         );
-
-//         void scoringSendFile(
-//             std::string filePath,
-//             int emailAddressColumnIndex,
-//             SendFileOptions options,
-//             OnSuccessCallback<ZBSendFileResponse> successCallback,
-//             OnErrorCallback errorCallback
-//         );
-
-//         void scoringFileStatus(
-//             std::string fileId,
-//             OnSuccessCallback<ZBFileStatusResponse> successCallback,
-//             OnErrorCallback errorCallback
-//         );
-
-//         void scoringGetFile(
-//             std::string fileId,
-//             std::string localDownloadPath,
-//             OnSuccessCallback<ZBGetFileResponse> successCallback,
-//             OnErrorCallback errorCallback
-//         );
-
-//         void scoringDeleteFile(
-//             std::string fileId,
-//             OnSuccessCallback<ZBDeleteFileResponse> successCallback,
-//             OnErrorCallback errorCallback
-//         );
-
-//         void getActivityData(
-//             std::string email,
-//             OnSuccessCallback<ZBActivityDataResponse> successCallback,
-//             OnErrorCallback errorCallback
-//         );
-// };
 
 #endif

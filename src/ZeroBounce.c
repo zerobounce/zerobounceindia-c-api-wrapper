@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <sys/stat.h>
 
 #include <curl/curl.h>
 
@@ -44,10 +45,13 @@ SendFileOptions new_send_file_options() {
 
 ZeroBounce* new_zero_bounce_instance() {
     ZeroBounce* zb = (ZeroBounce*) malloc(sizeof(ZeroBounce));
+    
     zb->api_key = NULL;
     zb->api_base_url = "https://api.zerobounce.net/v2";
     zb->bulk_api_base_url = "https://bulkapi.zerobounce.net/v2";
     zb->bulk_api_scoring_base_url = "https://bulkapi.zerobounce.net/v2/scoring";
+
+    curl_global_init(CURL_GLOBAL_ALL);
     return zb;
 }
 
@@ -68,7 +72,7 @@ void zero_bounce_initialize(ZeroBounce* zb, const char* api_key) {
 }
 
 
-bool zero_bounce_invalid_api_key(ZeroBounce *zb, OnErrorCallback error_callback) {
+static bool zero_bounce_invalid_api_key(ZeroBounce *zb, OnErrorCallback error_callback) {
     if (zb->api_key == NULL || strlen(zb->api_key) == 0) {
         ZBErrorResponse error_response = parse_error(
             "ZeroBounce is not initialized. Please call zero_bounce_initialize(zb_instance, api_key); first"
@@ -219,6 +223,276 @@ static void send_file_internal(
     curl_easy_cleanup(curl);
     curl_slist_free_all(headers);
     curl_mime_free(multipart);
+}
+
+
+static void file_status_internal(
+    ZeroBounce *zb,
+    bool scoring,
+    char* file_id,
+    OnSuccessCallbackFileStatus success_callback,
+    OnErrorCallback error_callback
+) {
+    if (zero_bounce_invalid_api_key(zb, error_callback)) return;
+
+    const char *url_pattern = "%s/filestatus?api_key=%s&file_id=%s";
+    const char* base_url = scoring ? zb->bulk_api_scoring_base_url : zb->bulk_api_base_url;
+
+    int url_path_len = snprintf(
+        NULL, 0, url_pattern, base_url, zb->api_key, file_id
+    );
+
+    char *url_path = malloc(url_path_len + 1);
+    if (!url_path) {
+        fprintf(stderr, "Memory allocation failed.\n");
+        exit(EXIT_FAILURE);
+    }
+
+    snprintf(
+        url_path, url_path_len + 1, url_pattern, base_url, zb->api_key, file_id
+    );
+
+    CURL* curl = curl_easy_init();
+    if (!curl) {
+        error_callback(parse_error("Failed to initialize libcurl"));
+        return;
+    }
+
+    curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "GET");
+    curl_easy_setopt(curl, CURLOPT_URL, url_path);
+
+    struct curl_slist* headers = NULL;
+    headers = curl_slist_append(headers, "Accept: application/json");
+    curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
+
+    memory response_data = {0};
+
+    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_callback);
+    curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void*)&response_data);
+
+    CURLcode res = curl_easy_perform(curl);
+
+    if (res != CURLE_OK) {
+        error_callback(parse_error("Failed to perform request"));
+        return;
+    }
+
+    long http_code = 0;
+    curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &http_code);
+
+    if (http_code > 299) {
+        if (error_callback) {
+            error_callback(parse_error(response_data.response));
+        }
+    } else {
+        if (success_callback) {
+            json_object *j_obj = json_tokener_parse(response_data.response);
+            if (j_obj == NULL) {
+                error_callback(parse_error("Failed to parse json string"));
+                return;
+            }
+
+            success_callback(zb_file_status_response_from_json(j_obj));
+            json_object_put(j_obj);
+        }
+    }
+
+    free(url_path);
+    free(response_data.response);
+
+    curl_easy_cleanup(curl);
+    curl_slist_free_all(headers);
+}
+
+
+static void get_file_internal(
+    ZeroBounce *zb,
+    bool scoring,
+    char* file_id,
+    char* local_download_path,
+    OnSuccessCallbackGetFile success_callback,
+    OnErrorCallback error_callback
+) {
+    if (zero_bounce_invalid_api_key(zb, error_callback)) return;
+
+    const char *url_pattern = "%s/getFile?api_key=%s&file_id=%s";
+    const char* base_url = scoring ? zb->bulk_api_scoring_base_url : zb->bulk_api_base_url;
+
+    int url_path_len = snprintf(
+        NULL, 0, url_pattern, base_url, zb->api_key, file_id
+    );
+
+    char *url_path = malloc(url_path_len + 1);
+    if (!url_path) {
+        fprintf(stderr, "Memory allocation failed.\n");
+        exit(EXIT_FAILURE);
+    }
+
+    snprintf(
+        url_path, url_path_len + 1, url_pattern, base_url, zb->api_key, file_id
+    );
+
+    CURL* curl = curl_easy_init();
+    if (!curl) {
+        error_callback(parse_error("Failed to initialize libcurl"));
+        return;
+    }
+
+    curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "GET");
+    curl_easy_setopt(curl, CURLOPT_URL, url_path);
+
+    struct curl_slist* headers = NULL;
+    headers = curl_slist_append(headers, "Accept: application/json");
+    curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
+
+    memory response_data = {0};
+
+    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_callback);
+    curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void*)&response_data);
+
+    CURLcode res = curl_easy_perform(curl);
+
+    if (res != CURLE_OK) {
+        error_callback(parse_error("Failed to perform request"));
+        return;
+    }
+
+    long http_code = 0;
+    struct curl_header *content_type_header;
+    curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &http_code);
+    curl_easy_header(curl, "Content-Type", 0, CURLH_HEADER, -1, &content_type_header);
+
+    if (http_code > 299) {
+        if (error_callback) {
+            error_callback(parse_error(response_data.response));
+        }
+    } else {
+        if (success_callback) {
+            if (strcmp(content_type_header->value, "application/json") != 0) {
+                struct stat sb;
+
+                if (stat(local_download_path, &sb) == 0 && S_ISDIR(sb.st_mode)) {
+                    error_callback(parse_error("Invalid file path"));
+                    return;
+                }
+
+                char* dir_path = strdup(local_download_path);
+                char* end = strrchr(dir_path, '/');
+                if (end != NULL) {
+                    *end = '\0';
+                    mkdir(dir_path, 0777);
+                }
+                free(dir_path);
+
+                FILE *file_stream = fopen(local_download_path, "wb");
+                if (file_stream == NULL) {
+                    perror("fopen");
+                    return;
+                }
+                fwrite(response_data.response, sizeof(char), strlen(response_data.response), file_stream);
+                fclose(file_stream);
+
+                ZBGetFileResponse response = new_zb_get_file_response();
+                response.success = true;
+                response.local_file_path = local_download_path;
+                success_callback(response);
+            } else {
+                json_object *j_obj = json_tokener_parse(response_data.response);
+                if (j_obj == NULL) {
+                    error_callback(parse_error("Failed to parse json string"));
+                    return;
+                }
+
+                success_callback(zb_get_file_response_from_json(j_obj));
+                json_object_put(j_obj);
+            }
+        }
+    }
+
+    free(url_path);
+    free(response_data.response);
+
+    curl_easy_cleanup(curl);
+    curl_slist_free_all(headers);
+}
+
+
+static void delete_file_internal(
+    ZeroBounce *zb,
+    bool scoring,
+    char* file_id,
+    OnSuccessCallbackDeleteFile success_callback,
+    OnErrorCallback error_callback
+) {
+    if (zero_bounce_invalid_api_key(zb, error_callback)) return;
+
+    const char *url_pattern = "%s/deletefile?api_key=%s&file_id=%s";
+    const char* base_url = scoring ? zb->bulk_api_scoring_base_url : zb->bulk_api_base_url;
+
+    int url_path_len = snprintf(
+        NULL, 0, url_pattern, base_url, zb->api_key, file_id
+    );
+
+    char *url_path = malloc(url_path_len + 1);
+    if (!url_path) {
+        fprintf(stderr, "Memory allocation failed.\n");
+        exit(EXIT_FAILURE);
+    }
+
+    snprintf(
+        url_path, url_path_len + 1, url_pattern, base_url, zb->api_key, file_id
+    );
+
+    CURL* curl = curl_easy_init();
+    if (!curl) {
+        error_callback(parse_error("Failed to initialize libcurl"));
+        return;
+    }
+
+    curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "GET");
+    curl_easy_setopt(curl, CURLOPT_URL, url_path);
+
+    struct curl_slist* headers = NULL;
+    headers = curl_slist_append(headers, "Accept: application/json");
+    curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
+
+    memory response_data = {0};
+
+    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_callback);
+    curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void*)&response_data);
+
+    CURLcode res = curl_easy_perform(curl);
+
+    if (res != CURLE_OK) {
+        error_callback(parse_error("Failed to perform request"));
+        return;
+    }
+
+    long http_code = 0;
+    curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &http_code);
+
+    if (http_code > 299) {
+        if (error_callback) {
+            error_callback(parse_error(response_data.response));
+        }
+    } else {
+        if (success_callback) {
+            json_object *j_obj = json_tokener_parse(response_data.response);
+            if (j_obj == NULL) {
+                error_callback(parse_error("Failed to parse json string"));
+                return;
+            }
+
+            success_callback(zb_delete_file_response_from_json(j_obj));
+            json_object_put(j_obj);
+        }
+    }
+
+    free(url_path);
+    free(response_data.response);
+
+    curl_easy_cleanup(curl);
+    curl_slist_free_all(headers);
 }
 
 
@@ -570,6 +844,76 @@ void send_file(
 }
 
 
+void file_status(
+    ZeroBounce *zb,
+    char* file_id,
+    OnSuccessCallbackFileStatus success_callback,
+    OnErrorCallback error_callback
+) {
+    file_status_internal(zb, false, file_id, success_callback, error_callback);
+}
+
+
+void get_file(
+    ZeroBounce *zb,
+    char* file_id,
+    char* local_download_path,
+    OnSuccessCallbackGetFile success_callback,
+    OnErrorCallback error_callback
+) {
+    get_file_internal(zb, false, file_id, local_download_path, success_callback, error_callback);
+}
+
+
+void delete_file(
+    ZeroBounce *zb,
+    char* file_id,
+    OnSuccessCallbackDeleteFile success_callback,
+    OnErrorCallback error_callback
+) {
+    delete_file_internal(zb, false, file_id, success_callback, error_callback);
+}
+
+void scoring_send_file(
+    ZeroBounce *zb,
+    char* file_path,
+    int email_address_column_index,
+    SendFileOptions options,
+    OnSuccessCallbackSendFile success_callback,
+    OnErrorCallback error_callback
+) {
+    send_file_internal(zb, true, file_path, email_address_column_index, options, success_callback, error_callback);
+}
+
+void scoring_file_status(
+    ZeroBounce *zb,
+    char* file_id,
+    OnSuccessCallbackFileStatus success_callback,
+    OnErrorCallback error_callback
+) {
+    file_status_internal(zb, true, file_id, success_callback, error_callback);
+}
+
+void scoring_get_file(
+    ZeroBounce *zb,
+    char* file_id,
+    char* local_download_path,
+    OnSuccessCallbackGetFile success_callback,
+    OnErrorCallback error_callback
+) {
+    get_file_internal(zb, true, file_id, local_download_path, success_callback, error_callback);
+}
+
+void scoring_delete_file(
+    ZeroBounce *zb,
+    char* file_id,
+    OnSuccessCallbackDeleteFile success_callback,
+    OnErrorCallback error_callback
+) {
+    delete_file_internal(zb, true, file_id, success_callback, error_callback);
+}
+
+
 void get_activity_data(
     ZeroBounce *zb,
     char* email,
@@ -645,274 +989,3 @@ void get_activity_data(
     curl_easy_cleanup(curl);
     curl_slist_free_all(headers);
 }
-
-// void ZeroBounce::sendFile(
-//     std::string filePath,
-//     int emailAddressColumnIndex,
-//     SendFileOptions options,
-//     OnSuccessCallback<ZBSendFileResponse> successCallback,
-//     OnErrorCallback errorCallback
-// ) {
-//     sendFileInternal(false, filePath, emailAddressColumnIndex, options, successCallback, errorCallback);
-// }
-
-// void ZeroBounce::fileStatus(
-//     std::string fileId,
-//     OnSuccessCallback<ZBFileStatusResponse> successCallback,
-//     OnErrorCallback errorCallback
-// ) {
-//     fileStatusInternal(false, fileId, successCallback, errorCallback);
-// }
-
-// void ZeroBounce::getFile(
-//     std::string fileId,
-//     std::string localDownloadPath,
-//     OnSuccessCallback<ZBGetFileResponse> successCallback,
-//     OnErrorCallback errorCallback
-// ) {
-//     getFileInternal(false, fileId, localDownloadPath, successCallback, errorCallback);
-// }
-
-// void ZeroBounce::deleteFile(
-//     std::string fileId,
-//     OnSuccessCallback<ZBDeleteFileResponse> successCallback,
-//     OnErrorCallback errorCallback
-// ) {
-//     deleteFileInternal(false, fileId, successCallback, errorCallback);
-// }
-
-// void ZeroBounce::scoringSendFile(
-//     std::string filePath,
-//     int emailAddressColumnIndex,
-//     SendFileOptions options,
-//     OnSuccessCallback<ZBSendFileResponse> successCallback,
-//     OnErrorCallback errorCallback
-// ) {
-//     sendFileInternal(true, filePath, emailAddressColumnIndex, options, successCallback, errorCallback);
-// }
-
-// void ZeroBounce::scoringFileStatus(
-//     std::string fileId,
-//     OnSuccessCallback<ZBFileStatusResponse> successCallback,
-//     OnErrorCallback errorCallback
-// ) {
-//     fileStatusInternal(true, fileId, successCallback, errorCallback);
-// }
-
-// void ZeroBounce::scoringGetFile(
-//     std::string fileId,
-//     std::string localDownloadPath,
-//     OnSuccessCallback<ZBGetFileResponse> successCallback,
-//     OnErrorCallback errorCallback
-// ) {
-//     getFileInternal(true, fileId, localDownloadPath, successCallback, errorCallback);
-// }
-
-// void ZeroBounce::scoringDeleteFile(
-//     std::string fileId,
-//     OnSuccessCallback<ZBDeleteFileResponse> successCallback,
-//     OnErrorCallback errorCallback
-// ) {
-//     deleteFileInternal(true, fileId, successCallback, errorCallback);
-// }
-
-// void ZeroBounce::getActivityData(
-//     std::string email,
-//     OnSuccessCallback<ZBActivityDataResponse> successCallback,
-//     OnErrorCallback errorCallback
-// ) {
-//     if (invalidApiKey(errorCallback)) return;
-
-//     sendRequest(
-//         apiBaseUrl + "/activity?api_key=" + apiKey + "&email=" + email,
-//         successCallback,
-//         errorCallback
-//     );
-// }
-
-// template <typename T>
-// void ZeroBounce::sendRequest(
-//     std::string urlPath,
-//     OnSuccessCallback<T> successCallback,
-//     OnErrorCallback errorCallback
-// ) {
-//     try {
-//         cpr::Response reqResponse = requestHandler.Get(
-//             cpr::Url{urlPath},
-//             cpr::Header{{"Accept", "application/json"}}
-//         );
-        
-//         std::string rsp = reqResponse.text;
-
-//         if (reqResponse.status_code > 299) {
-//             if (errorCallback) {
-//                 ZBErrorResponse errorResponse = ZBErrorResponse::parseError(rsp);
-//                 errorCallback(errorResponse);
-//             }
-//         } else {
-//             if (successCallback) {
-//                 T response = T::from_json(json::parse(rsp));
-//                 successCallback(response);
-//             }
-//         }
-//     } catch (std::exception e) {
-//         ZBErrorResponse errorResponse = ZBErrorResponse::parseError(e.what());
-//         errorCallback(errorResponse);
-//     }
-// }
-
-// void ZeroBounce::sendFileInternal(
-//     bool scoring,
-//     std::string filePath,
-//     int emailAddressColumnIndex,
-//     SendFileOptions options,
-//     OnSuccessCallback<ZBSendFileResponse> successCallback,
-//     OnErrorCallback errorCallback
-// ) {
-//     if (invalidApiKey(errorCallback)) return;
-
-//     try {
-//         std::string urlPath = (scoring ? bulkApiScoringBaseUrl : bulkApiBaseUrl) + "/sendFile";
-
-//         cpr::Multipart multipart{
-//             {"api_key", apiKey},
-//             {"file", cpr::File{filePath}},
-//             {"email_address_column", emailAddressColumnIndex}
-//         };
-
-//         if (!scoring) {
-//             if (options.firstNameColumn > 0) {
-//                 multipart.parts.emplace_back(cpr::Part{"first_name_column", options.firstNameColumn});
-//             }
-//             if (options.lastNameColumn > 0) {
-//                 multipart.parts.emplace_back(cpr::Part{"last_name_column", options.lastNameColumn});
-//             }
-//             if (options.genderColumn > 0) {
-//                 multipart.parts.emplace_back(cpr::Part{"gender_column", options.genderColumn});
-//             }
-//             if (options.ipAddressColumn > 0) {
-//                 multipart.parts.emplace_back(cpr::Part{"ip_address_column", options.ipAddressColumn});
-//             }
-//         }
-
-//         if (!options.returnUrl.empty()) {
-//                 multipart.parts.emplace_back(cpr::Part{"return_url", options.returnUrl});
-//         }
-        
-//         multipart.parts.emplace_back(cpr::Part{"has_header_row", options.hasHeaderRow});
-//         multipart.parts.emplace_back(cpr::Part{"remove_duplicate", options.removeDuplicate});
-
-//         cpr::Response reqResponse = requestHandler.Post(
-//             cpr::Url{urlPath},
-//             cpr::Header{{"Content-Type", "multipart/form-data"}},
-//             multipart
-//         );
-
-//         std::string rsp = reqResponse.text;
-
-//         if (reqResponse.status_code > 299) {
-//             if (errorCallback) {
-//                 ZBErrorResponse errorResponse = ZBErrorResponse::parseError(rsp);
-//                 errorCallback(errorResponse);
-//             }
-//         } else {
-//             if (successCallback) {
-//                 ZBSendFileResponse response = ZBSendFileResponse::from_json(json::parse(rsp));
-//                 successCallback(response);
-//             }
-//         }
-//     } catch (std::exception e) {
-//         ZBErrorResponse errorResponse = ZBErrorResponse::parseError(e.what());
-//         errorCallback(errorResponse);
-//     }
-// }
-
-// void ZeroBounce::fileStatusInternal(
-//     bool scoring,
-//     std::string fileId,
-//     OnSuccessCallback<ZBFileStatusResponse> successCallback,
-//     OnErrorCallback errorCallback
-// ) {
-//     if (invalidApiKey(errorCallback)) return;
-
-//     sendRequest(
-//         (scoring ? bulkApiScoringBaseUrl : bulkApiBaseUrl) + "/filestatus?api_key=" + apiKey
-//             + "&file_id=" + fileId,
-//         successCallback,
-//         errorCallback
-//     );
-// }
-
-// void ZeroBounce::getFileInternal(
-//     bool scoring,
-//     std::string fileId,
-//     std::string localDownloadPath,
-//     OnSuccessCallback<ZBGetFileResponse> successCallback,
-//     OnErrorCallback errorCallback
-// ) {
-//     if (invalidApiKey(errorCallback)) return;
-
-//     try {
-//         std::string urlPath = (scoring ? bulkApiScoringBaseUrl : bulkApiBaseUrl)
-//             + "/getFile?api_key=" + apiKey + "&file_id=" + fileId;
-        
-//         cpr::Response reqResponse = requestHandler.Get(cpr::Url{urlPath});
-
-//         std::string contentType = reqResponse.header["Content-Type"];
-
-//         std::string rsp = reqResponse.text;
-
-//         if (reqResponse.status_code > 299) {
-//             if (errorCallback) {
-//                 ZBErrorResponse errorResponse = ZBErrorResponse::parseError(rsp);
-//                 errorCallback(errorResponse);
-//             }
-//         } else {
-//             if (successCallback) {
-//                 if (contentType != "application/json") {
-//                     fs::path filePath(localDownloadPath);
-
-//                     if (fs::is_directory(filePath)) {
-//                         ZBErrorResponse errorResponse = ZBErrorResponse::parseError("Invalid file path");
-//                         errorCallback(errorResponse);
-//                         return;
-//                     }
-
-//                     fs::create_directories(filePath.parent_path());
-
-//                     std::ofstream fileStream(filePath, std::ofstream::out | std::ofstream::binary);
-
-//                     fileStream.write(rsp.c_str(), rsp.size());
-//                     fileStream.close();
-
-//                     ZBGetFileResponse response;
-//                     response.success = true;
-//                     response.localFilePath = localDownloadPath;
-//                     successCallback(response);
-//                 } else {
-//                     ZBGetFileResponse response = ZBGetFileResponse::from_json(json::parse(rsp));
-//                     successCallback(response);
-//                 }
-//             }
-//         }
-//     } catch (std::exception e) {
-//         ZBErrorResponse errorResponse = ZBErrorResponse::parseError(e.what());
-//         errorCallback(errorResponse);
-//     }
-// }
-
-// void ZeroBounce::deleteFileInternal(
-//     bool scoring,
-//     std::string fileId,
-//     OnSuccessCallback<ZBDeleteFileResponse> successCallback,
-//     OnErrorCallback errorCallback
-// ) {
-//     if (invalidApiKey(errorCallback)) return;
-
-//     sendRequest(
-//         (scoring ? bulkApiScoringBaseUrl : bulkApiBaseUrl) + "/deletefile?api_key=" + apiKey
-//             + "&file_id=" + fileId,
-//         successCallback,
-//         errorCallback
-//     );
-// }

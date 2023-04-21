@@ -35,4 +35,6 @@
 # Other
 .vscode
 build
+downloads
+test/downloads
 main.c

@@ -36,13 +36,13 @@ char* zb_file_status_response_to_string(ZBFileStatusResponse* response) {
         NULL, 0, serialization,
         response->success,
         response->message,
-        response->error_reason,
         response->file_id,
         response->file_name,
         response->upload_date,
         response->file_status,
         response->complete_percentage,
-        response->return_url
+        response->return_url,
+        response->error_reason
     );
 
     if (size < 0) {
@@ -58,13 +58,13 @@ char* zb_file_status_response_to_string(ZBFileStatusResponse* response) {
         buffer, size + 1, serialization,
         response->success,
         response->message,
-        response->error_reason,
         response->file_id,
         response->file_name,
         response->upload_date,
         response->file_status,
         response->complete_percentage,
-        response->return_url
+        response->return_url,
+        response->error_reason
     );
     return buffer;
 }
