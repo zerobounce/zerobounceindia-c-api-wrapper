@@ -14,18 +14,28 @@ FetchContent_Declare(
 )
 # Download and build libcurl
 FetchContent_Declare(
-    libcurl
-    GIT_REPOSITORY https://github.com/curl/curl.git
-    GIT_TAG curl-8_0_1
+  libcurl
+  GIT_REPOSITORY https://github.com/curl/curl.git
+  GIT_TAG curl-8_0_1
+)
+# Download and build unity
+FetchContent_Declare(
+  unity
+  GIT_REPOSITORY https://github.com/ThrowTheSwitch/Unity.git
+  GIT_TAG        v2.5.2
 )
 
-FetchContent_MakeAvailable(json-c libcurl)
+FetchContent_MakeAvailable(json-c libcurl unity)
 
 file(GLOB_RECURSE SOURCES "src/*.c")
 add_library(${PROJECT_NAME} SHARED ${SOURCES})
 target_include_directories(${PROJECT_NAME} PUBLIC include)
 
 target_link_libraries(${PROJECT_NAME} PUBLIC json-c libcurl)
+
+add_executable(ZeroBounceTests test/ZeroBounceTest.c)
+target_link_libraries(ZeroBounceTests PRIVATE ${PROJECT_NAME} unity)
+enable_testing()
 
 add_executable(zb_test main.c)
 target_link_libraries(zb_test PRIVATE ${PROJECT_NAME})
