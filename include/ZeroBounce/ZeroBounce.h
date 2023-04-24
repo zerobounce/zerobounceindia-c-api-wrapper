@@ -1,6 +1,7 @@
 #ifndef ZEROBOUNCE_H
 #define ZEROBOUNCE_H
 
+#include <stdio.h>
 #include <stdbool.h>
 #include <string.h>
 #include <time.h>
@@ -48,6 +49,11 @@ typedef struct {
 } ZeroBounce;
 
 static ZeroBounce* zero_bounce_instance = NULL;
+
+typedef struct {
+  char *response;
+  size_t size;
+} memory;
 
 static size_t write_callback(void *data, size_t size, size_t nmemb, void *clientp);
 

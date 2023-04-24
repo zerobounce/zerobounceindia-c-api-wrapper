@@ -5,11 +5,6 @@
 #include <curl/curl.h>
 
 #include "ZeroBounce/ZeroBounce.h"
-
-typedef struct {
-  char *response;
-  size_t size;
-} memory;
  
 static size_t write_callback(void *data, size_t size, size_t nmemb, void *clientp) {
   size_t real_size = size * nmemb;
