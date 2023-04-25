@@ -2,8 +2,6 @@
 #include <stdlib.h>
 #include <sys/stat.h>
 
-#include <curl/curl.h>
-
 #include "ZeroBounce/ZeroBounce.h"
  
 static size_t write_callback(void *data, size_t size, size_t nmemb, void *clientp) {
@@ -20,6 +18,25 @@ static size_t write_callback(void *data, size_t size, size_t nmemb, void *client
   mem->response[mem->size] = 0;
  
   return real_size;
+}
+
+void set_write_callback(CURL* curl, memory* response_data) {
+    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_callback);
+    curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void*)response_data);
+}
+
+long get_http_code(CURL* curl) {
+    long http_code = 0;
+    curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &http_code);
+
+    return http_code;
+}
+
+char* get_content_type_value(CURL* curl) {
+    struct curl_header *content_type_header;
+    curl_easy_header(curl, "Content-Type", 0, CURLH_HEADER, -1, &content_type_header);
+
+    return content_type_header->value;
 }
 
 
@@ -182,8 +199,7 @@ static void send_file_internal(
 
     memory response_data = {0};
 
-    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_callback);
-    curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void*)&response_data);
+    set_write_callback(curl, &response_data);
 
     CURLcode res = curl_easy_perform(curl);
 
@@ -192,8 +208,7 @@ static void send_file_internal(
         return;
     }
 
-    long http_code = 0;
-    curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &http_code);
+    long http_code = get_http_code(curl);
 
     if (http_code > 299) {
         if (error_callback) {
@@ -262,8 +277,7 @@ static void file_status_internal(
 
     memory response_data = {0};
 
-    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_callback);
-    curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void*)&response_data);
+    set_write_callback(curl, &response_data);
 
     CURLcode res = curl_easy_perform(curl);
 
@@ -272,8 +286,7 @@ static void file_status_internal(
         return;
     }
 
-    long http_code = 0;
-    curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &http_code);
+    long http_code = get_http_code(curl);
 
     if (http_code > 299) {
         if (error_callback) {
@@ -342,8 +355,7 @@ static void get_file_internal(
 
     memory response_data = {0};
 
-    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_callback);
-    curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void*)&response_data);
+    set_write_callback(curl, &response_data);
 
     CURLcode res = curl_easy_perform(curl);
 
@@ -352,10 +364,9 @@ static void get_file_internal(
         return;
     }
 
-    long http_code = 0;
-    struct curl_header *content_type_header;
-    curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &http_code);
-    curl_easy_header(curl, "Content-Type", 0, CURLH_HEADER, -1, &content_type_header);
+    long http_code = get_http_code(curl);
+
+    char* content_type = get_content_type_value(curl);
 
     if (http_code > 299) {
         if (error_callback) {
@@ -363,7 +374,7 @@ static void get_file_internal(
         }
     } else {
         if (success_callback) {
-            if (strcmp(content_type_header->value, "application/json") != 0) {
+            if (strcmp(content_type, "application/json") != 0) {
                 struct stat sb;
 
                 if (stat(local_download_path, &sb) == 0 && S_ISDIR(sb.st_mode)) {
@@ -453,8 +464,7 @@ static void delete_file_internal(
 
     memory response_data = {0};
 
-    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_callback);
-    curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void*)&response_data);
+    set_write_callback(curl, &response_data);
 
     CURLcode res = curl_easy_perform(curl);
 
@@ -463,8 +473,7 @@ static void delete_file_internal(
         return;
     }
 
-    long http_code = 0;
-    curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &http_code);
+    long http_code = get_http_code(curl);
 
     if (http_code > 299) {
         if (error_callback) {
@@ -529,8 +538,7 @@ void get_credits(
 
     memory response_data = {0};
 
-    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_callback);
-    curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void*)&response_data);
+    set_write_callback(curl, &response_data);
 
     CURLcode res = curl_easy_perform(curl);
 
@@ -539,8 +547,7 @@ void get_credits(
         return;
     }
 
-    long http_code = 0;
-    curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &http_code);
+    long http_code = get_http_code(curl);
 
     if (http_code > 299) {
         if (error_callback) {
@@ -616,8 +623,7 @@ void get_api_usage(
 
     memory response_data = {0};
 
-    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_callback);
-    curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void*)&response_data);
+    set_write_callback(curl, &response_data);
 
     CURLcode res = curl_easy_perform(curl);
 
@@ -626,8 +632,7 @@ void get_api_usage(
         return;
     }
 
-    long http_code = 0;
-    curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &http_code);
+    long http_code = get_http_code(curl);
 
     if (http_code > 299) {
         if (error_callback) {
@@ -694,8 +699,7 @@ void validate_email(
 
     memory response_data = {0};
 
-    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_callback);
-    curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void*)&response_data);
+    set_write_callback(curl, &response_data);
 
     CURLcode res = curl_easy_perform(curl);
 
@@ -704,8 +708,7 @@ void validate_email(
         return;
     }
 
-    long http_code = 0;
-    curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &http_code);
+    long http_code = get_http_code(curl);
 
     if (http_code > 299) {
         if (error_callback) {
@@ -789,8 +792,7 @@ void validate_batch(
 
     memory response_data = {0};
 
-    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_callback);
-    curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void*)&response_data);
+    set_write_callback(curl, &response_data);
 
     CURLcode res = curl_easy_perform(curl);
 
@@ -799,8 +801,7 @@ void validate_batch(
         return;
     }
 
-    long http_code = 0;
-    curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &http_code);
+    long http_code = get_http_code(curl);
 
     if (http_code > 299) {
         if (error_callback) {
@@ -948,8 +949,7 @@ void get_activity_data(
 
     memory response_data = {0};
 
-    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_callback);
-    curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void*)&response_data);
+    set_write_callback(curl, &response_data);
 
     CURLcode res = curl_easy_perform(curl);
 
@@ -958,8 +958,7 @@ void get_activity_data(
         return;
     }
 
-    long http_code = 0;
-    curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &http_code);
+    long http_code = get_http_code(curl);
 
     if (http_code > 299) {
         if (error_callback) {

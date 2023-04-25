@@ -6,6 +6,8 @@
 #include <string.h>
 #include <time.h>
 
+#include <curl/curl.h>
+
 #include "ZeroBounce/ZBErrorResponse.h"
 #include "ZeroBounce/ZBCreditsResponse.h"
 #include "ZeroBounce/ZBGetApiUsageResponse.h"
@@ -56,6 +58,12 @@ typedef struct {
 } memory;
 
 static size_t write_callback(void *data, size_t size, size_t nmemb, void *clientp);
+
+void set_write_callback(CURL* curl, memory* response_data);
+
+long get_http_code(CURL* curl);
+
+char* get_content_type_value(CURL* curl);
 
 ZeroBounce* new_zero_bounce_instance();
 
