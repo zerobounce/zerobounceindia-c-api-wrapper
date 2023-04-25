@@ -3,6 +3,10 @@
 
 #include <json-c/json.h>
 
+/**
+ * @brief The struct associated with the GET /getapiusage request.
+ * 
+ */
 typedef struct {
     int total;
     int status_valid;
@@ -42,12 +46,36 @@ typedef struct {
 
 } ZBGetApiUsageResponse;
 
+/**
+ * @brief Function used to initialize a new ZBGetApiUsageResponse.
+ * 
+ * @return ZBGetApiUsageResponse new instance
+ */
 ZBGetApiUsageResponse new_zb_get_api_usage_response();
 
+/**
+ * @brief Function used to serialize a ZBGetApiUsageResponse.
+ * 
+ * @param response ZBGetApiUsageResponse pointer
+ * @return char* serialization
+ */
 char* zb_get_api_usage_response_to_string(ZBGetApiUsageResponse* response);
 
+/**
+ * @brief Function used to create ZBGetApiUsageResponse from a json object.
+ * 
+ * @param j json pointer
+ * @return ZBGetApiUsageResponse new instance
+ */
 ZBGetApiUsageResponse zb_get_api_usage_response_from_json(const json_object* j);
 
+/**
+ * @brief Function used to compare ZBGetApiUsageResponse instances.
+ * 
+ * @param response1 ZBGetApiUsageResponse pointer
+ * @param response2 ZBGetApiUsageResponse pointer
+ * @return int 1 if the instances are equal, 0 otherwise
+ */
 int compare_zb_get_api_usage_response(const ZBGetApiUsageResponse* response1, const ZBGetApiUsageResponse* response2);
 
 #endif
