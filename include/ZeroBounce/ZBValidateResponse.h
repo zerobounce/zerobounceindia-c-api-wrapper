@@ -77,4 +77,6 @@ char* zb_validate_response_to_string(ZBValidateResponse* response);
 
 ZBValidateResponse zb_validate_response_from_json(const json_object* j);
 
+int compare_zb_validate_response(const ZBValidateResponse* response1, const ZBValidateResponse* response2);
+
 #endif

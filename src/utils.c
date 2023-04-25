@@ -35,6 +35,20 @@ void string_vector_free(StringVector* vector) {
     vector->size = 0;
 }
 
+int compare_string_vector(const StringVector* vec1, const StringVector* vec2) {
+    if (vec1->size != vec2->size) {
+        return 0;
+    }
+
+    for (size_t i = 0; i < vec1->size; i++) {
+        if (strcmp(vec1->data[i], vec2->data[i]) != 0) {
+            return 0;
+        }
+    }
+
+    return 1;
+}
+
 char* concatenate_strings(const StringVector* vec) {
     size_t total_length = 1;
 

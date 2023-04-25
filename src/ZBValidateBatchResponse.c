@@ -79,6 +79,21 @@ void validate_error_vector_free(ValidateErrorVector* vector) {
     vector->size = 0;
 }
 
+int compare_validate_error_vector(const ValidateErrorVector* vec1, const ValidateErrorVector* vec2) {
+    if (vec1->size != vec2->size) {
+        return 0;
+    }
+
+    for (size_t i = 0; i < vec1->size; i++) {
+        if (strcmp(vec1->data[i].email_address, vec2->data[i].email_address) != 0 ||
+            strcmp(vec1->data[i].error, vec2->data[i].error) != 0) {
+            return 0;
+        }
+    }
+
+    return 1;
+}
+
 ValidateResponseVector validate_response_vector_init() {
     ValidateResponseVector vector;
     vector.size = 0;
@@ -142,6 +157,20 @@ void validate_response_vector_free(ValidateResponseVector* vector) {
     free(vector->data);
     vector->data = NULL;
     vector->size = 0;
+}
+
+int compare_validate_response_vector(const ValidateResponseVector* vec1, const ValidateResponseVector* vec2) {
+    if (vec1->size != vec2->size) {
+        return 0;
+    }
+
+    for (size_t i = 0; i < vec1->size; i++) {
+        if (compare_zb_validate_response(&vec1->data[i], &vec2->data[i]) != 1) {
+            return 0;
+        }
+    }
+
+    return 1;
 }
 
 ZBValidateError new_zb_validate_error() {
@@ -265,4 +294,10 @@ ZBValidateBatchResponse zb_validate_batch_response_from_json(const json_object* 
     }
 
     return r;
+}
+
+int compare_zb_validate_batch_response(const ZBValidateBatchResponse* response1, const ZBValidateBatchResponse* response2) {
+    return
+        compare_validate_response_vector(&response1->email_batch, &response2->email_batch) &&
+        compare_validate_error_vector(&response1->errors, &response2->errors);
 }

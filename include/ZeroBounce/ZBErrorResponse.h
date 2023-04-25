@@ -18,4 +18,6 @@ char* zb_error_response_to_string(ZBErrorResponse* response);
 
 ZBErrorResponse parse_error(const char* error);
 
+int compare_zb_error_response(const ZBErrorResponse* response1, const ZBErrorResponse* response2);
+
 #endif

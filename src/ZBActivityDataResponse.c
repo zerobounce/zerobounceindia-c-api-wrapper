@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <string.h>
 
 #include "ZeroBounce/ZBActivityDataResponse.h"
 #include "ZeroBounce/utils.h"
@@ -53,4 +54,10 @@ ZBActivityDataResponse zb_activity_data_response_from_json(const json_object* j)
     r.error = *(char**)get_json_value(j, json_type_string, "error", &(char*){""});
 
     return r;
+}
+
+int compare_zb_activity_data_response(const ZBActivityDataResponse* response1, const ZBActivityDataResponse* response2) {
+    return response1->found == response2->found &&
+        response1->active_in_days == response2->active_in_days &&
+        strcmp(response1->error, response2->error) == 0;
 }

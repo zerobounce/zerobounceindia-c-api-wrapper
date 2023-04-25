@@ -214,3 +214,27 @@ ZBValidateResponse zb_validate_response_from_json(const json_object* j) {
 
     return r;
 }
+
+int compare_zb_validate_response(const ZBValidateResponse* response1, const ZBValidateResponse* response2) {
+    return
+        strcmp(response1->address, response2->address) == 0 &&
+        response1->status == response2->status &&
+        response1->sub_status == response2->sub_status &&
+        strcmp(response1->account, response2->account) == 0 &&
+        strcmp(response1->domain, response2->domain) == 0 &&
+        strcmp(response1->did_you_mean, response2->did_you_mean) == 0 &&
+        strcmp(response1->domain_age_days, response2->domain_age_days) == 0 &&
+        response1->free_email == response2->free_email &&
+        response1->mx_found == response2->mx_found &&
+        strcmp(response1->mx_record, response2->mx_record) == 0 &&
+        strcmp(response1->smtp_provider, response2->smtp_provider) == 0 &&
+        strcmp(response1->first_name, response2->first_name) == 0 &&
+        strcmp(response1->last_name, response2->last_name) == 0 &&
+        strcmp(response1->gender, response2->gender) == 0 &&
+        strcmp(response1->city, response2->city) == 0 &&
+        strcmp(response1->region, response2->region) == 0 &&
+        strcmp(response1->zip_code, response2->zip_code) == 0 &&
+        strcmp(response1->country, response2->country) == 0 &&
+        strcmp(response1->processed_at, response2->processed_at) == 0 &&
+        strcmp(response1->error, response2->error) == 0;
+}

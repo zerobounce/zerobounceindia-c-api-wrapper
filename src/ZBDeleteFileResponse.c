@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <string.h>
 
 #include "ZeroBounce/ZBDeleteFileResponse.h"
 #include "ZeroBounce/utils.h"
@@ -58,4 +59,11 @@ ZBDeleteFileResponse zb_delete_file_response_from_json(const json_object* j) {
     r.file_id = *(char**)get_json_value(j, json_type_string, "file_id", &(char*){""});
 
     return r;
+}
+
+int compare_zb_delete_file_response(const ZBDeleteFileResponse* response1, const ZBDeleteFileResponse* response2) {
+    return response1->success == response2->success &&
+        strcmp(response1->message, response2->message) == 0 &&
+        strcmp(response1->file_name, response2->file_name) == 0 &&
+        strcmp(response1->file_id, response2->file_id) == 0;
 }

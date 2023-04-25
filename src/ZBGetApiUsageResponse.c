@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <string.h>
 
 #include "ZeroBounce/ZBGetApiUsageResponse.h"
 #include "ZeroBounce/utils.h"
@@ -213,4 +214,42 @@ ZBGetApiUsageResponse zb_get_api_usage_response_from_json(const json_object* j) 
     r.error = *(char**)get_json_value(j, json_type_string, "error", &(char*){""});
 
     return r;
+}
+
+int compare_zb_get_api_usage_response(const ZBGetApiUsageResponse* response1, const ZBGetApiUsageResponse* response2) {
+    return response1->total == response2->total &&
+        response1->status_valid == response2->status_valid &&
+        response1->status_invalid == response2->status_invalid &&
+        response1->status_catch_all == response2->status_catch_all &&
+        response1->status_do_not_mail == response2->status_do_not_mail &&
+        response1->status_spamtrap == response2->status_spamtrap &&
+        response1->status_unknown == response2->status_unknown &&
+        response1->sub_status_toxic == response2->sub_status_toxic &&
+        response1->sub_status_disposable == response2->sub_status_disposable &&
+        response1->sub_status_role_based == response2->sub_status_role_based &&
+        response1->sub_status_possible_trap == response2->sub_status_possible_trap &&
+        response1->sub_status_global_suppression == response2->sub_status_global_suppression &&
+        response1->sub_status_timeout_exceeded == response2->sub_status_timeout_exceeded &&
+        response1->sub_status_mail_server_temporary_error == response2->sub_status_mail_server_temporary_error &&
+        response1->sub_status_mail_server_did_not_respond == response2->sub_status_mail_server_did_not_respond &&
+        response1->sub_status_grey_listed == response2->sub_status_grey_listed &&
+        response1->sub_status_anti_spam_system == response2->sub_status_anti_spam_system &&
+        response1->sub_status_does_not_accept_mail == response2->sub_status_does_not_accept_mail &&
+        response1->sub_status_exception_occurred == response2->sub_status_exception_occurred &&
+        response1->sub_status_failed_syntax_check == response2->sub_status_failed_syntax_check &&
+        response1->sub_status_mailbox_not_found == response2->sub_status_mailbox_not_found &&
+        response1->sub_status_unroutable_ip_address == response2->sub_status_unroutable_ip_address &&
+        response1->sub_status_possible_typo == response2->sub_status_possible_typo &&
+        response1->sub_status_no_dns_entries == response2->sub_status_no_dns_entries &&
+        response1->sub_status_role_based_catch_all == response2->sub_status_role_based_catch_all &&
+        response1->sub_status_mailbox_quota_exceeded == response2->sub_status_mailbox_quota_exceeded &&
+        response1->sub_status_forcible_disconnect == response2->sub_status_forcible_disconnect &&
+        response1->sub_status_failed_smtp_connection == response2->sub_status_failed_smtp_connection &&
+        response1->sub_status_mx_forward == response2->sub_status_mx_forward &&
+        response1->sub_status_alternate == response2->sub_status_alternate &&
+        response1->sub_status_blocked == response2->sub_status_blocked &&
+        response1->sub_status_allowed == response2->sub_status_allowed &&
+        strcmp(response1->start_date, response2->start_date) == 0 &&
+        strcmp(response1->end_date, response2->end_date) == 0 &&
+        strcmp(response1->error, response2->error) == 0;
 }

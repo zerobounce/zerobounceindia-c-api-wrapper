@@ -48,4 +48,6 @@ char* zb_get_api_usage_response_to_string(ZBGetApiUsageResponse* response);
 
 ZBGetApiUsageResponse zb_get_api_usage_response_from_json(const json_object* j);
 
+int compare_zb_get_api_usage_response(const ZBGetApiUsageResponse* response1, const ZBGetApiUsageResponse* response2);
+
 #endif

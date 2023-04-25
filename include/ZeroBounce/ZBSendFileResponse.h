@@ -20,4 +20,6 @@ char* zb_send_file_response_to_string(ZBSendFileResponse* response);
 
 ZBSendFileResponse zb_send_file_response_from_json(const json_object* j);
 
+int compare_zb_send_file_response(const ZBSendFileResponse* response1, const ZBSendFileResponse* response2);
+
 #endif

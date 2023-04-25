@@ -17,4 +17,6 @@ char* zb_get_file_response_to_string(ZBGetFileResponse* response);
 
 ZBGetFileResponse zb_get_file_response_from_json(const json_object* j);
 
+int compare_zb_get_file_response(const ZBGetFileResponse* response1, const ZBGetFileResponse* response2);
+
 #endif

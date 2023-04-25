@@ -23,4 +23,6 @@ char* zb_file_status_response_to_string(ZBFileStatusResponse* response);
 
 ZBFileStatusResponse zb_file_status_response_from_json(const json_object* j);
 
+int compare_zb_file_status_response(const ZBFileStatusResponse* response1, const ZBFileStatusResponse* response2);
+
 #endif

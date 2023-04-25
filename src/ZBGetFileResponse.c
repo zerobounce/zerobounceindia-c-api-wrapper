@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <string.h>
 
 #include "ZeroBounce/ZBGetFileResponse.h"
 #include "ZeroBounce/utils.h"
@@ -52,4 +53,10 @@ ZBGetFileResponse zb_get_file_response_from_json(const json_object* j) {
     r.message = *(char**)get_json_value(j, json_type_string, "message", &(char*){""});
 
     return r;
+}
+
+int compare_zb_get_file_response(const ZBGetFileResponse* response1, const ZBGetFileResponse* response2) {
+    return response1->success == response2->success &&
+        strcmp(response1->message, response2->message) == 0 &&
+        strcmp(response1->local_file_path, response2->local_file_path) == 0;
 }

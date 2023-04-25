@@ -86,3 +86,15 @@ ZBErrorResponse parse_error(const char* error) {
 
     return response;
 }
+
+int compare_zb_error_response(const ZBErrorResponse* response1, const ZBErrorResponse* response2) {
+    if (response1->success != response2->success) {
+        return 0;
+    }
+
+    if (compare_string_vector(&response1->errors, &response2->errors) != 1) {
+        return 0;
+    }
+
+    return 1;
+}

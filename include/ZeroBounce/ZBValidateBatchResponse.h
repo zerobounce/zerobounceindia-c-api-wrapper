@@ -46,6 +46,8 @@ void validate_error_vector_append(ValidateErrorVector* vector, const ZBValidateE
 
 void validate_error_vector_free(ValidateErrorVector* vector);
 
+int compare_validate_error_vector(const ValidateErrorVector* vec1, const ValidateErrorVector* vec2);
+
 
 typedef struct {
     ZBValidateResponse* data;
@@ -58,6 +60,8 @@ void validate_response_vector_append(ValidateResponseVector* vector, const ZBVal
 
 void validate_response_vector_free(ValidateResponseVector* vector);
 
+int compare_validate_response_vector(const ValidateResponseVector* vec1, const ValidateResponseVector* vec2);
+
 
 typedef struct {
     ValidateResponseVector email_batch;
@@ -69,5 +73,7 @@ ZBValidateBatchResponse new_zb_validate_batch_response();
 char* zb_validate_batch_response_to_string(ZBValidateBatchResponse* response);
 
 ZBValidateBatchResponse zb_validate_batch_response_from_json(const json_object* j);
+
+int compare_zb_validate_batch_response(const ZBValidateBatchResponse* response1, const ZBValidateBatchResponse* response2);
 
 #endif

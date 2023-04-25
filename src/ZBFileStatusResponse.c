@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <string.h>
 
 #include "ZeroBounce/ZBFileStatusResponse.h"
 #include "ZeroBounce/utils.h"
@@ -83,4 +84,16 @@ ZBFileStatusResponse zb_file_status_response_from_json(const json_object* j) {
     r.return_url = *(char**)get_json_value(j, json_type_string, "return_url", &(char*){""});
 
     return r;
+}
+
+int compare_zb_file_status_response(const ZBFileStatusResponse* response1, const ZBFileStatusResponse* response2) {
+    return response1->success == response2->success &&
+        strcmp(response1->message, response2->message) == 0 &&
+        strcmp(response1->error_reason, response2->error_reason) == 0 &&
+        strcmp(response1->file_id, response2->file_id) == 0 &&
+        strcmp(response1->file_name, response2->file_name) == 0 &&
+        strcmp(response1->upload_date, response2->upload_date) == 0 &&
+        strcmp(response1->file_status, response2->file_status) == 0 &&
+        strcmp(response1->complete_percentage, response2->complete_percentage) == 0 &&
+        strcmp(response1->return_url, response2->return_url) == 0;
 }

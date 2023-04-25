@@ -735,7 +735,7 @@ void validate_email(
 }
 
 
-void validate_batch(
+void validate_email_batch(
     ZeroBounce *zb,
     EmailToValidateVector email_batch,
     OnSuccessCallbackValidateBatch success_callback,
