@@ -131,6 +131,26 @@ void zero_bounce_initialize(ZeroBounce* zb, const char* api_key);
 static bool zero_bounce_invalid_api_key(ZeroBounce *zb, OnErrorCallback error_callback);
 
 /**
+ * @brief Internal function used to make libcurl requests.
+ * 
+ * @param url_path url to make request to
+ * @param request_type type of the request (e.g. "GET")
+ * @param header header for the request
+ * @param response_data response of the request
+ * @param http_code response code
+ * @param error_callback error callback
+ * @return int 1 if the request is successful, 0 otherwise
+ */
+static int make_request(
+    char* url_path,
+    char* request_type,
+    char* header,
+    memory* response_data,
+    long* http_code,
+    OnErrorCallback error_callback
+);
+
+/**
  * @brief Internal function to send a file for bulk email validation. This function implements the actual
  * request logic.
  * 

@@ -96,6 +96,47 @@ static bool zero_bounce_invalid_api_key(ZeroBounce *zb, OnErrorCallback error_ca
 }
 
 
+static int make_request(
+    char* url_path,
+    char* request_type,
+    char* header,
+    memory* response_data,
+    long* http_code,
+    OnErrorCallback error_callback
+) {
+    CURL* curl = curl_easy_init();
+    if (!curl) {
+        error_callback(parse_error("Failed to initialize libcurl"));
+        curl_easy_cleanup(curl);
+        return 0;
+    }
+
+    curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, request_type);
+    curl_easy_setopt(curl, CURLOPT_URL, url_path);
+
+    struct curl_slist* headers = NULL;
+    headers = curl_slist_append(headers, header);
+    curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
+
+    set_write_callback(curl, response_data);
+
+    CURLcode res = curl_easy_perform(curl);
+
+    if (res != CURLE_OK) {
+        error_callback(parse_error("Failed to perform request"));
+        curl_easy_cleanup(curl);
+        curl_slist_free_all(headers);
+        return 0;
+    }
+
+    *http_code = get_http_code(curl);
+
+    curl_easy_cleanup(curl);
+    curl_slist_free_all(headers);
+
+    return 1;
+}
+
 static void send_file_internal(
     ZeroBounce *zb,
     bool scoring,
@@ -124,10 +165,13 @@ static void send_file_internal(
         url_path, url_path_len + 1, url_pattern, base_url
     );
 
+    memory response_data = {0};
+
     CURL* curl = curl_easy_init();
     if (!curl) {
         error_callback(parse_error("Failed to initialize libcurl"));
-        return;
+        curl_easy_cleanup(curl);
+        goto cleanup;
     }
 
     curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "POST");
@@ -197,18 +241,23 @@ static void send_file_internal(
 
     curl_easy_setopt(curl, CURLOPT_MIMEPOST, multipart);
 
-    memory response_data = {0};
-
     set_write_callback(curl, &response_data);
 
     CURLcode res = curl_easy_perform(curl);
 
     if (res != CURLE_OK) {
         error_callback(parse_error("Failed to perform request"));
-        return;
+        curl_easy_cleanup(curl);
+        curl_slist_free_all(headers);
+        curl_mime_free(multipart);
+        goto cleanup;
     }
 
     long http_code = get_http_code(curl);
+
+    curl_easy_cleanup(curl);
+    curl_slist_free_all(headers);
+    curl_mime_free(multipart);
 
     if (http_code > 299) {
         if (error_callback) {
@@ -219,7 +268,7 @@ static void send_file_internal(
             json_object *j_obj = json_tokener_parse(response_data.response);
             if (j_obj == NULL) {
                 error_callback(parse_error("Failed to parse json string"));
-                return;
+                goto cleanup;
             }
 
             success_callback(zb_send_file_response_from_json(j_obj));
@@ -227,12 +276,9 @@ static void send_file_internal(
         }
     }
 
+    cleanup:
     free(url_path);
     free(response_data.response);
-
-    curl_easy_cleanup(curl);
-    curl_slist_free_all(headers);
-    curl_mime_free(multipart);
 }
 
 
@@ -262,31 +308,12 @@ static void file_status_internal(
         url_path, url_path_len + 1, url_pattern, base_url, zb->api_key, file_id
     );
 
-    CURL* curl = curl_easy_init();
-    if (!curl) {
-        error_callback(parse_error("Failed to initialize libcurl"));
-        return;
-    }
-
-    curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "GET");
-    curl_easy_setopt(curl, CURLOPT_URL, url_path);
-
-    struct curl_slist* headers = NULL;
-    headers = curl_slist_append(headers, "Accept: application/json");
-    curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
-
     memory response_data = {0};
+    long http_code;
 
-    set_write_callback(curl, &response_data);
-
-    CURLcode res = curl_easy_perform(curl);
-
-    if (res != CURLE_OK) {
-        error_callback(parse_error("Failed to perform request"));
-        return;
+    if(!make_request(url_path, "GET", "Accept: application/json", &response_data, &http_code, error_callback)){
+        goto cleanup;
     }
-
-    long http_code = get_http_code(curl);
 
     if (http_code > 299) {
         if (error_callback) {
@@ -297,7 +324,7 @@ static void file_status_internal(
             json_object *j_obj = json_tokener_parse(response_data.response);
             if (j_obj == NULL) {
                 error_callback(parse_error("Failed to parse json string"));
-                return;
+                goto cleanup;
             }
 
             success_callback(zb_file_status_response_from_json(j_obj));
@@ -305,11 +332,9 @@ static void file_status_internal(
         }
     }
 
+    cleanup:
     free(url_path);
     free(response_data.response);
-
-    curl_easy_cleanup(curl);
-    curl_slist_free_all(headers);
 }
 
 
@@ -340,10 +365,13 @@ static void get_file_internal(
         url_path, url_path_len + 1, url_pattern, base_url, zb->api_key, file_id
     );
 
+    memory response_data = {0};
+
     CURL* curl = curl_easy_init();
     if (!curl) {
         error_callback(parse_error("Failed to initialize libcurl"));
-        return;
+        curl_easy_cleanup(curl);
+        goto cleanup;
     }
 
     curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "GET");
@@ -353,20 +381,23 @@ static void get_file_internal(
     headers = curl_slist_append(headers, "Accept: application/json");
     curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
 
-    memory response_data = {0};
-
     set_write_callback(curl, &response_data);
 
     CURLcode res = curl_easy_perform(curl);
 
     if (res != CURLE_OK) {
         error_callback(parse_error("Failed to perform request"));
-        return;
+        curl_easy_cleanup(curl);
+        curl_slist_free_all(headers);
+        goto cleanup;
     }
 
     long http_code = get_http_code(curl);
 
     char* content_type = get_content_type_value(curl);
+
+    curl_easy_cleanup(curl);
+    curl_slist_free_all(headers);
 
     if (http_code > 299) {
         if (error_callback) {
@@ -379,7 +410,7 @@ static void get_file_internal(
 
                 if (stat(local_download_path, &sb) == 0 && S_ISDIR(sb.st_mode)) {
                     error_callback(parse_error("Invalid file path"));
-                    return;
+                    goto cleanup;
                 }
 
                 char* dir_path = strdup(local_download_path);
@@ -393,7 +424,7 @@ static void get_file_internal(
                 FILE *file_stream = fopen(local_download_path, "wb");
                 if (file_stream == NULL) {
                     perror("fopen");
-                    return;
+                    goto cleanup;
                 }
                 fwrite(response_data.response, sizeof(char), strlen(response_data.response), file_stream);
                 fclose(file_stream);
@@ -406,7 +437,7 @@ static void get_file_internal(
                 json_object *j_obj = json_tokener_parse(response_data.response);
                 if (j_obj == NULL) {
                     error_callback(parse_error("Failed to parse json string"));
-                    return;
+                    goto cleanup;
                 }
 
                 success_callback(zb_get_file_response_from_json(j_obj));
@@ -415,11 +446,9 @@ static void get_file_internal(
         }
     }
 
+    cleanup:
     free(url_path);
     free(response_data.response);
-
-    curl_easy_cleanup(curl);
-    curl_slist_free_all(headers);
 }
 
 
@@ -449,31 +478,12 @@ static void delete_file_internal(
         url_path, url_path_len + 1, url_pattern, base_url, zb->api_key, file_id
     );
 
-    CURL* curl = curl_easy_init();
-    if (!curl) {
-        error_callback(parse_error("Failed to initialize libcurl"));
-        return;
-    }
-
-    curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "GET");
-    curl_easy_setopt(curl, CURLOPT_URL, url_path);
-
-    struct curl_slist* headers = NULL;
-    headers = curl_slist_append(headers, "Accept: application/json");
-    curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
-
     memory response_data = {0};
+    long http_code;
 
-    set_write_callback(curl, &response_data);
-
-    CURLcode res = curl_easy_perform(curl);
-
-    if (res != CURLE_OK) {
-        error_callback(parse_error("Failed to perform request"));
-        return;
+    if(!make_request(url_path, "GET", "Accept: application/json", &response_data, &http_code, error_callback)){
+        goto cleanup;
     }
-
-    long http_code = get_http_code(curl);
 
     if (http_code > 299) {
         if (error_callback) {
@@ -484,7 +494,7 @@ static void delete_file_internal(
             json_object *j_obj = json_tokener_parse(response_data.response);
             if (j_obj == NULL) {
                 error_callback(parse_error("Failed to parse json string"));
-                return;
+                goto cleanup;
             }
 
             success_callback(zb_delete_file_response_from_json(j_obj));
@@ -492,11 +502,9 @@ static void delete_file_internal(
         }
     }
 
+    cleanup:
     free(url_path);
     free(response_data.response);
-
-    curl_easy_cleanup(curl);
-    curl_slist_free_all(headers);
 }
 
 
@@ -523,31 +531,12 @@ void get_credits(
         url_path, url_path_len + 1, url_pattern, zb->api_base_url, zb->api_key
     );
 
-    CURL* curl = curl_easy_init();
-    if (!curl) {
-        error_callback(parse_error("Failed to initialize libcurl"));
-        return;
-    }
-
-    curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "GET");
-    curl_easy_setopt(curl, CURLOPT_URL, url_path);
-
-    struct curl_slist* headers = NULL;
-    headers = curl_slist_append(headers, "Accept: application/json");
-    curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
-
     memory response_data = {0};
+    long http_code;
 
-    set_write_callback(curl, &response_data);
-
-    CURLcode res = curl_easy_perform(curl);
-
-    if (res != CURLE_OK) {
-        error_callback(parse_error("Failed to perform request"));
-        return;
+    if(!make_request(url_path, "GET", "Accept: application/json", &response_data, &http_code, error_callback)){
+        goto cleanup;
     }
-
-    long http_code = get_http_code(curl);
 
     if (http_code > 299) {
         if (error_callback) {
@@ -558,7 +547,7 @@ void get_credits(
             json_object *j_obj = json_tokener_parse(response_data.response);
             if (j_obj == NULL) {
                 error_callback(parse_error("Failed to parse json string"));
-                return;
+                goto cleanup;
             }
 
             success_callback(zb_credits_response_from_json(j_obj));
@@ -566,11 +555,9 @@ void get_credits(
         }
     }
 
+    cleanup:
     free(url_path);
     free(response_data.response);
-
-    curl_easy_cleanup(curl);
-    curl_slist_free_all(headers);
 }
 
 
@@ -608,31 +595,12 @@ void get_api_usage(
         start_date_str, end_date_str
     );
 
-    CURL* curl = curl_easy_init();
-    if (!curl) {
-        error_callback(parse_error("Failed to initialize libcurl"));
-        return;
-    }
-
-    curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "GET");
-    curl_easy_setopt(curl, CURLOPT_URL, url_path);
-
-    struct curl_slist* headers = NULL;
-    headers = curl_slist_append(headers, "Accept: application/json");
-    curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
-
     memory response_data = {0};
+    long http_code;
 
-    set_write_callback(curl, &response_data);
-
-    CURLcode res = curl_easy_perform(curl);
-
-    if (res != CURLE_OK) {
-        error_callback(parse_error("Failed to perform request"));
-        return;
+    if(!make_request(url_path, "GET", "Accept: application/json", &response_data, &http_code, error_callback)){
+        goto cleanup;
     }
-
-    long http_code = get_http_code(curl);
 
     if (http_code > 299) {
         if (error_callback) {
@@ -643,7 +611,7 @@ void get_api_usage(
             json_object *j_obj = json_tokener_parse(response_data.response);
             if (j_obj == NULL) {
                 error_callback(parse_error("Failed to parse json string"));
-                return;
+                goto cleanup;
             }
 
             success_callback(zb_get_api_usage_response_from_json(j_obj));
@@ -651,11 +619,9 @@ void get_api_usage(
         }
     }
 
+    cleanup:
     free(url_path);
     free(response_data.response);
-
-    curl_easy_cleanup(curl);
-    curl_slist_free_all(headers);
 }
 
 
@@ -684,31 +650,12 @@ void validate_email(
         url_path, url_path_len + 1, url_pattern, zb->api_base_url, zb->api_key, email, ip_address
     );
 
-    CURL* curl = curl_easy_init();
-    if (!curl) {
-        error_callback(parse_error("Failed to initialize libcurl"));
-        return;
-    }
-
-    curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "GET");
-    curl_easy_setopt(curl, CURLOPT_URL, url_path);
-
-    struct curl_slist* headers = NULL;
-    headers = curl_slist_append(headers, "Accept: application/json");
-    curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
-
     memory response_data = {0};
+    long http_code;
 
-    set_write_callback(curl, &response_data);
-
-    CURLcode res = curl_easy_perform(curl);
-
-    if (res != CURLE_OK) {
-        error_callback(parse_error("Failed to perform request"));
-        return;
+    if(!make_request(url_path, "GET", "Accept: application/json", &response_data, &http_code, error_callback)){
+        goto cleanup;
     }
-
-    long http_code = get_http_code(curl);
 
     if (http_code > 299) {
         if (error_callback) {
@@ -719,7 +666,7 @@ void validate_email(
             json_object *j_obj = json_tokener_parse(response_data.response);
             if (j_obj == NULL) {
                 error_callback(parse_error("Failed to parse json string"));
-                return;
+                goto cleanup;
             }
 
             success_callback(zb_validate_response_from_json(j_obj));
@@ -727,11 +674,9 @@ void validate_email(
         }
     }
 
+    cleanup:
     free(url_path);
     free(response_data.response);
-
-    curl_easy_cleanup(curl);
-    curl_slist_free_all(headers);
 }
 
 
@@ -772,10 +717,13 @@ void validate_email_batch(
     json_object_object_add(payload, "api_key", json_object_new_string(zb->api_key));
     json_object_object_add(payload, "email_batch", email_batch_json);
 
+    memory response_data = {0};
+
     CURL* curl = curl_easy_init();
     if (!curl) {
         error_callback(parse_error("Failed to initialize libcurl"));
-        return;
+        curl_easy_cleanup(curl);
+        goto cleanup;
     }
 
     curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "POST");
@@ -790,18 +738,21 @@ void validate_email_batch(
 
     json_object_put(payload);
 
-    memory response_data = {0};
-
     set_write_callback(curl, &response_data);
 
     CURLcode res = curl_easy_perform(curl);
 
     if (res != CURLE_OK) {
         error_callback(parse_error("Failed to perform request"));
-        return;
+        curl_easy_cleanup(curl);
+        curl_slist_free_all(headers);
+        goto cleanup;
     }
 
     long http_code = get_http_code(curl);
+
+    curl_easy_cleanup(curl);
+    curl_slist_free_all(headers);
 
     if (http_code > 299) {
         if (error_callback) {
@@ -812,7 +763,7 @@ void validate_email_batch(
             json_object *j_obj = json_tokener_parse(response_data.response);
             if (j_obj == NULL) {
                 error_callback(parse_error("Failed to parse json string"));
-                return;
+                goto cleanup;
             }
 
             success_callback(zb_validate_batch_response_from_json(j_obj));
@@ -820,11 +771,9 @@ void validate_email_batch(
         }
     }
 
+    cleanup:
     free(url_path);
     free(response_data.response);
-
-    curl_easy_cleanup(curl);
-    curl_slist_free_all(headers);
 }
 
 
@@ -934,31 +883,12 @@ void get_activity_data(
         url_path, url_path_len + 1, url_pattern, zb->api_base_url, zb->api_key, email
     );
 
-    CURL* curl = curl_easy_init();
-    if (!curl) {
-        error_callback(parse_error("Failed to initialize libcurl"));
-        return;
-    }
-
-    curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "GET");
-    curl_easy_setopt(curl, CURLOPT_URL, url_path);
-
-    struct curl_slist* headers = NULL;
-    headers = curl_slist_append(headers, "Accept: application/json");
-    curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
-
     memory response_data = {0};
+    long http_code;
 
-    set_write_callback(curl, &response_data);
-
-    CURLcode res = curl_easy_perform(curl);
-
-    if (res != CURLE_OK) {
-        error_callback(parse_error("Failed to perform request"));
-        return;
+    if(!make_request(url_path, "GET", "Accept: application/json", &response_data, &http_code, error_callback)){
+        goto cleanup;
     }
-
-    long http_code = get_http_code(curl);
 
     if (http_code > 299) {
         if (error_callback) {
@@ -969,7 +899,7 @@ void get_activity_data(
             json_object *j_obj = json_tokener_parse(response_data.response);
             if (j_obj == NULL) {
                 error_callback(parse_error("Failed to parse json string"));
-                return;
+                goto cleanup;
             }
 
             success_callback(zb_activity_data_response_from_json(j_obj));
@@ -977,9 +907,7 @@ void get_activity_data(
         }
     }
 
+    cleanup:
     free(url_path);
     free(response_data.response);
-
-    curl_easy_cleanup(curl);
-    curl_slist_free_all(headers);
 }
