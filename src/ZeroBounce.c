@@ -1,6 +1,13 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <sys/types.h>
 #include <sys/stat.h>
+#include <unistd.h>
+#include <string.h>
+
+#ifdef _WIN32
+#include <direct.h>
+#endif
 
 #include "ZeroBounce/ZeroBounce.h"
  
@@ -408,13 +415,20 @@ static void get_file_internal(
             if (strcmp(content_type, "application/json") != 0) {
                 struct stat sb;
 
+                #ifdef _WIN32
+                const char path_separator = '\\';
+                #define mkdir(path, mode) _mkdir(path)
+                #else
+                const char path_separator = '/';
+                #endif
+
                 if (stat(local_download_path, &sb) == 0 && S_ISDIR(sb.st_mode)) {
                     error_callback(parse_error("Invalid file path"));
                     goto cleanup;
                 }
 
                 char* dir_path = strdup(local_download_path);
-                char* end = strrchr(dir_path, '/');
+                char* end = strrchr(dir_path, path_separator);
                 if (end != NULL) {
                     *end = '\0';
                     mkdir(dir_path, 0777);
