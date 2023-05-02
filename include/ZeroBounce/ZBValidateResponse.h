@@ -9,7 +9,7 @@
  * Enum that lists all the possible statuses of the email validation result.
  */
 typedef enum {
-    Unknown,
+    UnknownValue,
     Valid,
     Invalid,
     CatchAll,

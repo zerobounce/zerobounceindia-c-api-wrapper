@@ -19,7 +19,7 @@ ZBValidateStatus status_from_string(const char* string) {
         return DoNotMail;
     }
 
-    return Unknown;
+    return UnknownValue;
 }
 
 ZBValidateSubStatus sub_status_from_string(const char* string) {
@@ -78,7 +78,7 @@ ZBValidateResponse new_zb_validate_response() {
     ZBValidateResponse response;
 
     response.address = "";
-    response.status = Unknown;
+    response.status = UnknownValue;
     response.sub_status = None;
     response.account = "";
     response.domain = "";
