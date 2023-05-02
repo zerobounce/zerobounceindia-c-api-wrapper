@@ -35,9 +35,12 @@ FetchContent_MakeAvailable(json-c libcurl unity fff)
 
 file(GLOB_RECURSE SOURCES "src/*.c")
 add_library(${PROJECT_NAME} SHARED ${SOURCES})
-target_include_directories(${PROJECT_NAME} PUBLIC include)
+target_include_directories(${PROJECT_NAME} PUBLIC include ${json-c_SOURCE_DIR})
 
 target_link_libraries(${PROJECT_NAME} PUBLIC json-c libcurl)
+
+add_executable(zb_test main.c)
+target_link_libraries(zb_test PRIVATE ${PROJECT_NAME})
 
 add_executable(ZeroBounceTests test/ZeroBounceTest.c)
 target_link_libraries(ZeroBounceTests PRIVATE ${PROJECT_NAME} unity)

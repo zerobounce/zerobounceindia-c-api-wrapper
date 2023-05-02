@@ -3,7 +3,7 @@
 
 #include <stdbool.h>
 
-#include <json-c/json.h>
+#include <json.h>
 
 /**
  * @brief The struct associated with the GET /scoring/deletefile GET /deletefile requests.

@@ -1,7 +1,7 @@
 #ifndef ZBGETAPIUSAGERESPONSE_H
 #define ZBGETAPIUSAGERESPONSE_H
 
-#include <json-c/json.h>
+#include <json.h>
 
 /**
  * @brief The struct associated with the GET /getapiusage request.

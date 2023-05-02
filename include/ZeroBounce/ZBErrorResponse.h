@@ -3,7 +3,7 @@
 
 #include <stdbool.h>
 
-#include <json-c/json.h>
+#include <json.h>
 
 #include "utils.h"
 

@@ -3,7 +3,7 @@
 
 #include <stdbool.h>
 
-#include <json-c/json.h>
+#include <json.h>
 
 /**
  * Enum that lists all the possible statuses of the email validation result.

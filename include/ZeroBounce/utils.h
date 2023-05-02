@@ -1,7 +1,7 @@
 #ifndef UTILS_H
 #define UTILS_H
 
-#include <json-c/json.h>
+#include <json.h>
 
 /**
  * @brief Struct used to simulate a vector of strings.

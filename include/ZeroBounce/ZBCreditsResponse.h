@@ -1,7 +1,7 @@
 #ifndef ZBCREDITSRESPONSE_H
 #define ZBCREDITSRESPONSE_H
 
-#include <json-c/json.h>
+#include <json.h>
 
 /**
  * @brief The struct associated with the GET /getcredits request.

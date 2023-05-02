@@ -275,8 +275,8 @@ ZBValidateBatchResponse zb_validate_batch_response_from_json(const json_object* 
     json_object* j_email_batch = NULL;
     json_object* j_errors = NULL;
 
-    if (json_object_object_get_ex(j, "email_batch", &j_email_batch) == FALSE ||
-        json_object_object_get_ex(j, "errors", &j_errors) == FALSE) {
+    if (json_object_object_get_ex(j, "email_batch", &j_email_batch) == false ||
+        json_object_object_get_ex(j, "errors", &j_errors) == false) {
         return r;
     }
 
