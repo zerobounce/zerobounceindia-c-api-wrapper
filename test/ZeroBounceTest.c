@@ -428,7 +428,7 @@ void test_get_file_valid(void)
 {
     response_json = 
         "\"Email Address\",\"First Name\",\"Last Name\",\"Gender\",\"ZB Status\",\"ZB Sub Status\",\"ZB Account\",\"ZB Domain\",\"ZB First Name\",\"ZB Last Name\",\"ZB Gender\",\"ZB Free Email\",\"ZB MX Found\",\"ZB MX Record\",\"ZB SMTP Provider\",\"ZB Did You Mean\"\n"
-        "\"alex.broasca@mountsoftware.ro\",\"Alex\",\"Broasca\",\"\",\"invalid\",\"mailbox_not_found\",\"alexbroasca\",\"mountsoftware.ro\",\"alex\",\"broasca\",\"male\",\"False\",\"true\",\"aspmx.l.google.com\",\"g-suite\",\"\"\n";
+        "\"valid@example.com\",\"zero\",\"bounce\",\"\",\"valid\",\"\",\"\",\"\",\"zero\",\"bounce\",\"male\",\"False\",\"true\",\"mx.example.com\",\"example\",\"\"\n";
 
     get_http_code_fake.return_val = 200;
     get_content_type_value_fake.return_val = "application/octet-stream";
@@ -545,7 +545,7 @@ void test_scoring_get_file_valid(void)
 {
     response_json = 
         "\"email\",\"firstname\",\"lastname\",\"ZeroBounceQualityScore\"\n"
-        "\"alex.broasca@mountsoftware.ro\",\"Alex\",\"Broasca\",\"0\"";
+        "\"valid@example.com\",\"zero\",\"bounce\",\"10\"";
 
     get_http_code_fake.return_val = 200;
     get_content_type_value_fake.return_val = "application/octet-stream";
