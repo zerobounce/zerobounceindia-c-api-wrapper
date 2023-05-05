@@ -1,5 +1,5 @@
-## Zero Bounce C API Wrapper
-This API wrapper contains function for interacting easily with ZeroBounce API.
+## Zero Bounce India C API Wrapper
+This API wrapper contains function for interacting easily with ZeroBounce India API.
 More information about ZeroBounce you can find in the [official documentation](https://www.zerobounce.net/docs/).
 
 ## INSTALLATION
@@ -7,17 +7,17 @@ You can install by using CMake with `FetchContent`. Add the following to your `C
 ```cmake
 include(FetchContent)
 FetchContent_Declare(
-    ZeroBounce
-    GIT_REPOSITORY https://github.com/zerobounce/zerobounce-c-api-wrapper.git
+    ZeroBounceIndia
+    GIT_REPOSITORY https://github.com/zerobounce/zerobounceindia-c-api-wrapper.git
     GIT_TAG <DESIRED_TAG>
 )
-FetchContent_MakeAvailable(ZeroBounce)
+FetchContent_MakeAvailable(ZeroBounceIndia)
 ```
 
-This will produce the target `ZeroBounce` which you can link against the typical way:
+This will produce the target `ZeroBounceIndia` which you can link against the typical way:
 
 ```cmake
-target_link_libraries(your_target_name PRIVATE ZeroBounce)
+target_link_libraries(your_target_name PRIVATE ZeroBounceIndia)
 ```
 
 ## USAGE

@@ -66,9 +66,9 @@ ZeroBounce* new_zero_bounce_instance() {
     ZeroBounce* zb = (ZeroBounce*) malloc(sizeof(ZeroBounce));
     
     zb->api_key = NULL;
-    zb->api_base_url = "https://api.zerobounce.net/v2";
-    zb->bulk_api_base_url = "https://bulkapi.zerobounce.net/v2";
-    zb->bulk_api_scoring_base_url = "https://bulkapi.zerobounce.net/v2/scoring";
+    zb->api_base_url = "https://api.zerobounce.in/v2";
+    zb->bulk_api_base_url = "https://bulkapi.zerobounce.in/v2";
+    zb->bulk_api_scoring_base_url = "https://bulkapi.zerobounce.in/v2/scoring";
 
     curl_global_init(CURL_GLOBAL_ALL);
     return zb;
