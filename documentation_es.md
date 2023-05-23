@@ -1,8 +1,4 @@
-## Zero Bounce C API Wrapper
-Este envoltorio de API contiene funciones para interactuar fácilmente con la API de ZeroBounce.
-Puedes encontrar más información sobre ZeroBounce en la [documentación oficial](https://www.zerobounce.net/docs/).
-
-## INSTALACIÓN
+#### INSTALACIÓN
 Antes de instalar el envoltorio, asegúrate de tener instalado `CMake` en tu sistema. Puedes descargarlo desde [aquí](https://cmake.org/download/).
 
 Puedes instalarlo utilizando CMake con `FetchContent`. Agrega lo siguiente a tu archivo `CMakeLists.txt`:
@@ -26,7 +22,7 @@ Si estás utilizando Visual Studio Code, puedes construir la biblioteca utilizan
 
 Alternativamente, también puedes utilizar los comandos de la CLI en el directorio raíz de tu proyecto.
 
-#### LINUX
+###### LINUX
 
 ```bash
 mkdir build
@@ -34,7 +30,7 @@ cmake -S . -B build -G "Unix Makefiles"
 cmake --build build
 ```
 
-#### WINDOWS
+###### WINDOWS
 
 Asegúrate de tener `MinGW` instalado en tu sistema. Puede instalarse siguiendo los pasos [aquí](https://code.visualstudio.com/docs/cpp/config-mingw).
 
@@ -46,10 +42,10 @@ cmake --build build
 
 Ten en cuenta que es posible que la biblioteca requiera algunos archivos .dll (que se encuentran en el directorio `build`) para funcionar correctamente en tu proyecto.
 
-## USO
+#### USO
 Incluye la biblioteca en tu archivo:
 ```c
-#include <ZeroBounce/ZeroBounce.h>
+###include <ZeroBounce/ZeroBounce.h>
 ``` 
 
 Inicializa el envoltorio con tu clave de API:
@@ -57,10 +53,10 @@ Inicializa el envoltorio con tu clave de API:
 ZeroBounce* zb = zero_bounce_get_instance();
 zero_bounce_initialize(zb, "<TU_CLAVE_DE_API>");
 ```
-## Ejemplos
+#### Ejemplos
 Luego puedes usar cualquiera de las funciones de envoltura, por ejemplo:
 
-##### Verifica cuántos créditos te quedan en tu cuenta
+####### Verifica cuántos créditos te quedan en tu cuenta
 ```c
 void on_error(ZBErrorResponse error_response) {
     printf("%s\n\n", zb_error_response_to_string(&error_response));
@@ -73,7 +69,7 @@ void on_success_credits(ZBCreditsResponse response) {
 get_credits(zb, on_success_credits, on_error);
 ```
 
-##### Verifica el uso de la API para un período de tiempo determinado
+####### Verifica el uso de la API para un período de tiempo determinado
 ```c
 void on_error(ZBErrorResponse error_response) {
     printf("%s\n\n", zb_error_response_to_string(&error_response));
@@ -96,7 +92,7 @@ end_date.tm_mday = 12;
 get_api_usage(zb, start_date, end_date, on_success_api_usage, on_error);
 ```
 
-##### Valida una dirección de correo electrónico
+####### Valida una dirección de correo electrónico
 ```c
 void on_error(ZBErrorResponse error_response) {
     printf("%s\n\n", zb_error_response_to_string(&error_response));
@@ -112,7 +108,7 @@ char* ip_address = "127.0.0.1";     // La dirección IP desde la cual se registr
 validate_email(zb, email, ip_address, on_success_validate, on_error);
 ```
 
-##### Valida un lote de correos electrónicos
+####### Valida un lote de correos electrónicos
 ```c
 void on_error(ZBErrorResponse error_response) {
     printf("%s\n\n", zb_error_response_to_string(&error_response));
@@ -135,7 +131,7 @@ validate_email_batch(zb, vector, on_success_validate_batch, on_error);
 email_to_validate_vector_free(&vector);
 ```
 
-##### Utiliza el punto de conexión de la API de actividad para obtener información sobre el compromiso general de los suscriptores con los correos electrónicos
+####### Utiliza el punto de conexión de la API de actividad para obtener información sobre el compromiso general de los suscriptores con los correos electrónicos
 ```c
 void on_error(ZBErrorResponse error_response) {
     printf("%s\n\n", zb_error_response_to_string(&error_response));
@@ -150,7 +146,7 @@ char* email = "valid@example.com";    // Dirección de correo electrónico del s
 get_activity_data(zb, email, on_success_activity_data, on_error);
 ```
 
-##### La API sendfile permite al usuario enviar un archivo para validar correos electrónicos a granel
+####### La API sendfile permite al usuario enviar un archivo para validar correos electrónicos a granel
 ```c
 void on_error(ZBErrorResponse error_response) {
     printf("%s\n\n", zb_error_response_to_string(&error_response));
@@ -177,7 +173,7 @@ options.removeDuplicate = true;	// Si esto es `true`, los correos electrónicos 
 send_file(zb, file_path, email_address_column, options, on_success_send_file, on_error);
 ```
 
-##### La API getfile permite a los usuarios obtener el archivo de resultados de validación para el archivo enviado utilizando la API sendfile
+####### La API getfile permite a los usuarios obtener el archivo de resultados de validación para el archivo enviado utilizando la API sendfile
 ```c
 void on_error(ZBErrorResponse error_response) {
     printf("%s\n\n", zb_error_response_to_string(&error_response));
@@ -193,7 +189,7 @@ char* local_download_path = "<RUTA_DESCARGA_ARCHIVO>"; 	// La ubicación donde s
 get_file(zb, file_id, local_download_path, on_success_get_file, on_error);
 ```
 
-##### Verifica el estado de un archivo cargado a través del método "sendFile"
+####### Verifica el estado de un archivo cargado a través del método "sendFile"
 ```c
 void on_error(ZBErrorResponse error_response) {
     printf("%s\n\n", zb_error_response_to_string(&error_response));
@@ -208,7 +204,7 @@ char* file_id = "<ID_DEL_ARCHIVO>";		// El ID de archivo devuelto al llamar a la
 file_status(zb, file_id, on_success_file_status, on_error);
 ```
 
-##### Elimina el archivo que se envió mediante la API sendfile. El archivo solo se puede eliminar cuando su estado es _`Complete`_
+####### Elimina el archivo que se envió mediante la API sendfile. El archivo solo se puede eliminar cuando su estado es _`Complete`_
 ```c
 void on_error(ZBErrorResponse error_response) {
     printf("%s\n\n", zb_error_response_to_string(&error_response));
@@ -223,7 +219,7 @@ char* file_id = "<ID_DEL_ARCHIVO>";		// El ID de archivo devuelto al llamar a la
 delete_file(zb, file_id, on_success_delete_file, on_error);
 ```
 
-##### La API scoringSendfile permite al usuario enviar un archivo para validar correos electrónicos a granel
+####### La API scoringSendfile permite al usuario enviar un archivo para validar correos electrónicos a granel
 
 
 ```c
@@ -245,7 +241,7 @@ options.hasHeaderRow = true;            // Si esto es `true`, la primera fila se
 scoring_send_file(zb, file_path, email_address_column, options, on_success_send_file, on_error);
 ```
 
-##### La API scoringGetFile permite a los usuarios obtener el archivo de resultados de validación para el archivo enviado utilizando la API scoringSendfile
+####### La API scoringGetFile permite a los usuarios obtener el archivo de resultados de validación para el archivo enviado utilizando la API scoringSendfile
 ```c
 void on_error(ZBErrorResponse error_response) {
     printf("%s\n\n", zb_error_response_to_string(&error_response));
@@ -261,7 +257,7 @@ char* local_download_path = "<RUTA_DESCARGA_ARCHIVO>";  	// La ubicación donde 
 scoring_get_file(zb, file_id, local_download_path, on_success_get_file, on_error);
 ```
 
-##### Verifica el estado de un archivo cargado a través del método "scoringSendFile"
+####### Verifica el estado de un archivo cargado a través del método "scoringSendFile"
 ```c
 void on_error(ZBErrorResponse error_response) {
     printf("%s\n\n", zb_error_response_to_string(&error_response));
@@ -276,7 +272,7 @@ char* file_id = "<ID_DEL_ARCHIVO>";                    // El ID de archivo devue
 scoring_file_status(zb, file_id, on_success_file_status, on_error);
 ```
 
-##### Elimina el archivo que se envió mediante la API scoring scoringSendfile. El archivo solo se puede eliminar cuando su estado es _`Complete`_
+####### Elimina el archivo que se envió mediante la API scoring scoringSendfile. El archivo solo se puede eliminar cuando su estado es _`Complete`_
 ```c
 void on_error(ZBErrorResponse error_response) {
     printf("%s\n\n", zb_error_response_to_string(&error_response));
@@ -291,7 +287,7 @@ char* file_id = "<ID_DEL_ARCHIVO>";                       // El ID de archivo de
 scoring_delete_file(zb, file_id, on_success_delete_file, on_error);
 ```
 
-## DESARROLLO
+#### DESARROLLO
 
 Se recomienda realizar el desarrollo en Linux.
 
