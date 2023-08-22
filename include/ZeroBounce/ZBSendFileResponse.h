@@ -8,7 +8,7 @@
 #include "utils.h"
 
 /**
- * @brief The struct associated with the POST /scoring/sendFile and POST /sendFile requests.
+ * @brief The struct associated with the POST /scoring/sendfile and POST /sendfile requests.
  * 
  */
 typedef struct {

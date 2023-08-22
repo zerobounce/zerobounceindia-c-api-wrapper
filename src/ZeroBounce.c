@@ -155,7 +155,7 @@ static void send_file_internal(
 ) {
     if (zero_bounce_invalid_api_key(zb, error_callback)) return;
 
-    const char *url_pattern = "%s/sendFile";
+    const char *url_pattern = "%s/sendfile";
     const char* base_url = scoring ? zb->bulk_api_scoring_base_url : zb->bulk_api_base_url;
 
     int url_path_len = snprintf(
@@ -355,7 +355,7 @@ static void get_file_internal(
 ) {
     if (zero_bounce_invalid_api_key(zb, error_callback)) return;
 
-    const char *url_pattern = "%s/getFile?api_key=%s&file_id=%s";
+    const char *url_pattern = "%s/getfile?api_key=%s&file_id=%s";
     const char* base_url = scoring ? zb->bulk_api_scoring_base_url : zb->bulk_api_base_url;
 
     int url_path_len = snprintf(
