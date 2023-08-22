@@ -6,7 +6,7 @@
 #include <json.h>
 
 /**
- * @brief The struct associated with the GET /scoring/getFile and GET /getFile requests.
+ * @brief The struct associated with the GET /scoring/getfile and GET /getfile requests.
  * 
  */
 typedef struct {
