@@ -22,13 +22,13 @@ EmailToValidateVector email_to_validate_vector_init() {
 
 void email_to_validate_vector_append(EmailToValidateVector* vector, const ZBEmailToValidate email) {
     if (!vector) return;
-    
+
     vector->data = (ZBEmailToValidate*) realloc(vector->data, (vector->size + 1) * sizeof(ZBEmailToValidate));
     if (!vector->data) {
         fprintf(stderr, "Memory allocation failed.\n");
         exit(EXIT_FAILURE);
     }
-    
+
     vector->data[vector->size].email_address = strdup(email.email_address);
     vector->data[vector->size].ip_address = strdup(email.ip_address);
     vector->size++;
@@ -36,7 +36,7 @@ void email_to_validate_vector_append(EmailToValidateVector* vector, const ZBEmai
 
 void email_to_validate_vector_free(EmailToValidateVector* vector) {
     if (!vector) return;
-    
+
     for (size_t i = 0; i < vector->size; i++) {
         free(vector->data[i].email_address);
         free(vector->data[i].ip_address);
@@ -55,13 +55,13 @@ ValidateErrorVector validate_error_vector_init() {
 
 void validate_error_vector_append(ValidateErrorVector* vector, const ZBValidateError error) {
     if (!vector) return;
-    
+
     vector->data = (ZBValidateError*) realloc(vector->data, (vector->size + 1) * sizeof(ZBValidateError));
     if (!vector->data) {
         fprintf(stderr, "Memory allocation failed.\n");
         exit(EXIT_FAILURE);
     }
-    
+
     vector->data[vector->size].error = strdup(error.error);
     vector->data[vector->size].email_address = strdup(error.email_address);
     vector->size++;
@@ -69,7 +69,7 @@ void validate_error_vector_append(ValidateErrorVector* vector, const ZBValidateE
 
 void validate_error_vector_free(ValidateErrorVector* vector) {
     if (!vector) return;
-    
+
     for (size_t i = 0; i < vector->size; i++) {
         free(vector->data[i].error);
         free(vector->data[i].email_address);
@@ -103,13 +103,13 @@ ValidateResponseVector validate_response_vector_init() {
 
 void validate_response_vector_append(ValidateResponseVector* vector, const ZBValidateResponse response) {
     if (!vector) return;
-    
+
     vector->data = (ZBValidateResponse*) realloc(vector->data, (vector->size + 1) * sizeof(ZBValidateResponse));
     if (!vector->data) {
         fprintf(stderr, "Memory allocation failed.\n");
         exit(EXIT_FAILURE);
     }
-    
+
     vector->data[vector->size].address = strdup(response.address);
     vector->data[vector->size].status = response.status;
     vector->data[vector->size].sub_status = response.sub_status;
@@ -135,7 +135,7 @@ void validate_response_vector_append(ValidateResponseVector* vector, const ZBVal
 
 void validate_response_vector_free(ValidateResponseVector* vector) {
     if (!vector) return;
-    
+
     for (size_t i = 0; i < vector->size; i++) {
         free(vector->data[i].address);
         free(vector->data[i].account);

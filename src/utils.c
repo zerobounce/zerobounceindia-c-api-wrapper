@@ -13,20 +13,20 @@ StringVector string_vector_init() {
 
 void string_vector_append(StringVector* vector, const char* str) {
     if (!vector) return;
-    
+
     vector->data = realloc(vector->data, (vector->size + 1) * sizeof(char*));
     if (!vector->data) {
         fprintf(stderr, "Memory allocation failed.\n");
         exit(EXIT_FAILURE);
     }
-    
+
     vector->data[vector->size] = strdup(str);
     vector->size++;
 }
 
 void string_vector_free(StringVector* vector) {
     if (!vector) return;
-    
+
     for (size_t i = 0; i < vector->size; i++) {
         free(vector->data[i]);
     }
@@ -119,7 +119,7 @@ void* get_json_value(const json_object* obj, json_type type, const char* key, vo
                     }
 
                     *string_vector_value = string_vector_init();
-                    
+
                     size_t array_length = json_object_array_length(value_obj);
                     for (size_t i = 0; i < array_length; i++) {
                         json_object* item = json_object_array_get_idx(value_obj, i);

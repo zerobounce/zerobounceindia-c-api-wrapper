@@ -125,7 +125,7 @@ void setUp(void) {
     RESET_FAKE(set_write_callback);
     RESET_FAKE(get_http_code);
     RESET_FAKE(get_content_type_value);
-    
+
     curl_easy_perform_fake.return_val = CURLE_OK;
     set_write_callback_fake.custom_fake = mock_set_write_callback;
 }
@@ -426,7 +426,7 @@ void test_get_file_invalid(void)
 
 void test_get_file_valid(void)
 {
-    response_json = 
+    response_json =
         "\"Email Address\",\"First Name\",\"Last Name\",\"Gender\",\"ZB Status\",\"ZB Sub Status\",\"ZB Account\",\"ZB Domain\",\"ZB First Name\",\"ZB Last Name\",\"ZB Gender\",\"ZB Free Email\",\"ZB MX Found\",\"ZB MX Record\",\"ZB SMTP Provider\",\"ZB Did You Mean\"\n"
         "\"valid@example.com\",\"zero\",\"bounce\",\"\",\"valid\",\"\",\"\",\"\",\"zero\",\"bounce\",\"male\",\"False\",\"true\",\"mx.example.com\",\"example\",\"\"\n";
 
@@ -543,7 +543,7 @@ void test_scoring_get_file_invalid(void)
 
 void test_scoring_get_file_valid(void)
 {
-    response_json = 
+    response_json =
         "\"email\",\"firstname\",\"lastname\",\"ZeroBounceQualityScore\"\n"
         "\"valid@example.com\",\"zero\",\"bounce\",\"10\"";
 

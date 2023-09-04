@@ -10,20 +10,20 @@
 #endif
 
 #include "ZeroBounce/ZeroBounce.h"
- 
+
 static size_t write_callback(void *data, size_t size, size_t nmemb, void *clientp) {
   size_t real_size = size * nmemb;
   memory *mem = (memory*)clientp;
- 
+
   char *ptr = realloc(mem->response, mem->size + real_size + 1);
   if(ptr == NULL)
     return 0;  /* out of memory! */
- 
+
   mem->response = ptr;
   memcpy(&(mem->response[mem->size]), data, real_size);
   mem->size += real_size;
   mem->response[mem->size] = 0;
- 
+
   return real_size;
 }
 
@@ -64,7 +64,7 @@ SendFileOptions new_send_file_options() {
 
 ZeroBounce* new_zero_bounce_instance() {
     ZeroBounce* zb = (ZeroBounce*) malloc(sizeof(ZeroBounce));
-    
+
     zb->api_key = NULL;
     zb->api_base_url = "https://api.zerobounce.net/v2";
     zb->bulk_api_base_url = "https://bulkapi.zerobounce.net/v2";

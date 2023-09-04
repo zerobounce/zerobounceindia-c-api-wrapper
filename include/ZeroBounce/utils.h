@@ -5,7 +5,7 @@
 
 /**
  * @brief Struct used to simulate a vector of strings.
- * 
+ *
  */
 typedef struct {
     size_t size;
@@ -14,39 +14,39 @@ typedef struct {
 
 /**
  * @brief Initializes a new StringVector instance.
- * 
+ *
  * @return StringVector new instance
  */
 StringVector string_vector_init();
 
 /**
  * @brief Function used to add a string to the vector of strings.
- * 
- * @param vector StringVector pointer 
+ *
+ * @param vector StringVector pointer
  * @param str string to be added
  */
 void string_vector_append(StringVector *vector, const char* str);
 
 /**
  * @brief Function used to free the memory of a StringVector instance.
- * 
- * @param vector StringVector pointer 
+ *
+ * @param vector StringVector pointer
  */
 void string_vector_free(StringVector* vector);
 
 /**
  * @brief Function used to compare StringVector instances.
- * 
- * @param vec1 StringVector pointer 
- * @param vec2 StringVector pointer 
+ *
+ * @param vec1 StringVector pointer
+ * @param vec2 StringVector pointer
  * @return int 1 if the instances are equal, 0 otherwise
  */
 int compare_string_vector(const StringVector* vec1, const StringVector* vec2);
 
 /**
  * @brief Function used to concatenate the strings of a StringVector.
- * 
- * @param vec StringVector pointer 
+ *
+ * @param vec StringVector pointer
  * @return char* resulting string
  */
 char* concatenate_strings(const StringVector* vec);
@@ -54,7 +54,7 @@ char* concatenate_strings(const StringVector* vec);
 /**
  * @brief Function used to get the value of a given key in a json.
  * If the key doesn't exist or it's null, a default value is returned.
- * 
+ *
  * @param obj json pointer
  * @param type type of the value to be extracteds
  * @param key name of the field
