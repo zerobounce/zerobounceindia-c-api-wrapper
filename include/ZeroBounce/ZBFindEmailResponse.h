@@ -70,6 +70,14 @@ ZBDomainFormat zb_domain_format_from_json(const json_object* j);
  */
 void zb_domain_format_free(ZBDomainFormat* instance);
 
+/**
+ * @brief Ensure two ZBDomainFormat instances are the same
+ *
+ * @param instance1 first ZBDomainFormat instance to compare
+ * @param instance2 second ZBDomainFormat instance to compare
+ * @return int whether the objects are the same (value 1) or not (value 0)
+ */
+int zb_domain_format_compare(ZBDomainFormat* instance1, ZBDomainFormat* instance2);
 
 // ZBDomainFormatVector methods
 
@@ -111,6 +119,14 @@ char* zb_domain_format_vector_to_string(ZBDomainFormatVector* vector);
  */
 ZBDomainFormatVector zb_domain_format_vector_from_json(const json_object* j);
 
+/**
+ * @brief Ensure two ZBDomainFormatVector instances are the same
+ *
+ * @param instance1 first ZBDomainFormatVector instance to compare
+ * @param instance2 second ZBDomainFormatVector instance to compare
+ * @return int whether the objects are the same (value 1) or not (value 0)
+ */
+int zb_domain_format_vector_compare(ZBDomainFormatVector* instance1, ZBDomainFormatVector* instance2);
 
 // ZBFindEmailResponse methods
 
@@ -143,5 +159,14 @@ ZBFindEmailResponse zb_find_email_response_from_json(const json_object* j);
  * @param vector ZBFindEmailResponse pointer
  */
 void zb_find_email_response_free(ZBFindEmailResponse* instance);
+
+/**
+ * @brief Ensure two ZBFindEmailResponse instances are the same
+ *
+ * @param instance1 first ZBFindEmailResponse instance to compare
+ * @param instance2 second ZBFindEmailResponse instance to compare
+ * @return int whether the objects are the same (value 1) or not (value 0)
+ */
+int zb_find_email_response_compare(ZBFindEmailResponse* instance1, ZBFindEmailResponse* instance2);
 
 #endif

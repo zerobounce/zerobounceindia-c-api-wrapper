@@ -39,7 +39,6 @@ char* zb_domain_format_to_string(ZBDomainFormat* domain_format) {
     return buffer;
 }
 
-
 ZBDomainFormat zb_domain_format_from_json(const json_object* j) {
     ZBDomainFormat domain_format = zb_domain_format_init();
     domain_format.format = *(char**)get_json_value(j, json_type_string, "format", &(char*){""});
@@ -56,6 +55,10 @@ void zb_domain_format_free(ZBDomainFormat* instance) {
     instance->confidence = NULL;
 }
 
+int zb_domain_format_compare(ZBDomainFormat* instance1, ZBDomainFormat* instance2) {
+    return instance1->format == instance2->format &&
+        instance2->confidence == instance2->confidence;
+}
 
 // ZBDomainFormatVector methods
 
@@ -152,6 +155,18 @@ ZBDomainFormatVector zb_domain_format_vector_from_json(const json_object* j) {
         );
     }
     return vector;
+}
+
+int zb_domain_format_vector_compare(ZBDomainFormatVector* instance1, ZBDomainFormatVector* instance2) {
+    if (instance1->size != instance2->size) {
+        return 0;
+    }
+    for (int index = 0; index < instance1->size; index ++) {
+        if (!zb_domain_format_compare(instance1->data + index, instance1->data + index)) {
+            return 0;
+        }
+    }
+    return 1;
 }
 
 // ZBFindEmailResponse methods
@@ -265,4 +280,18 @@ void zb_find_email_response_free(ZBFindEmailResponse* instance) {
     instance->confidence = NULL;
     instance->did_you_mean = NULL;
     instance->failure_reason = NULL;
+}
+
+int zb_find_email_response_compare(ZBFindEmailResponse* instance1, ZBFindEmailResponse* instance2) {
+    return instance1->email == instance2->email &&
+        instance1->domain == instance2->domain &&
+        instance1->format == instance2->format &&
+        instance1->status == instance2->status &&
+        instance1->sub_status == instance2->sub_status &&
+        instance1->confidence == instance2->confidence &&
+        instance1->did_you_mean == instance2->did_you_mean &&
+        instance1->failure_reason == instance2->failure_reason &&
+        zb_domain_format_vector_compare(
+            &(instance1->other_domain_formats), &(instance2->other_domain_formats)
+        );
 }

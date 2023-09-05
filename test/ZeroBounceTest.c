@@ -17,6 +17,7 @@ static ZBFileStatusResponse expected_file_status_response;
 static ZBGetFileResponse expected_get_file_response;
 static ZBDeleteFileResponse expected_delete_file_response;
 static ZBActivityDataResponse expected_activity_data_response;
+static ZBFindEmailResponse expected_find_email_response;
 
 static char* response_json = "";
 
@@ -98,6 +99,12 @@ void on_success_activity_data_valid(ZBActivityDataResponse response) {
 
 void on_success_activity_data_invalid(ZBActivityDataResponse response) {
     TEST_FAIL_MESSAGE(zb_activity_data_response_to_string(&response));
+}
+
+void on_success_find_email_valid(ZBFindEmailResponse response) {
+    TEST_ASSERT_TRUE(
+        zb_find_email_response_compare(&expected_find_email_response, &response)
+    );
 }
 
 // Handle mocks
@@ -582,6 +589,83 @@ void test_scoring_delete_file_valid(void)
     expected_delete_file_response = zb_delete_file_response_from_json(json_tokener_parse(response_json));
 
     scoring_delete_file(zb, "aaaaaaaa-zzzz-xxxx-yyyy-5003727fffff", on_success_delete_file_valid, on_error_valid);
+}
+
+void test_find_email_status_invalid_payload(void) {
+    response_json = "{\n"
+        "    \"email\": \"\",\n"
+        "    \"domain\": \"example.com\",\n"
+        "    \"format\": \"unknown\",\n"
+        "    \"status\": \"invalid\",\n"
+        "    \"sub_status\": \"no_dns_entries\",\n"
+        "    \"confidence\": \"undetermined\",\n"
+        "    \"did_you_mean\": \"\",\n"
+        "    \"failure_reason\": \"\",\n"
+        "    \"other_domain_formats\": []\n"
+        "}";
+
+    // de-serialization testing
+    ZBFindEmailResponse response_obj = zb_find_email_response_from_json(
+        json_tokener_parse(response_json)
+    );
+    TEST_ASSERT_EQUAL_CHAR("", response_obj.email);
+    TEST_ASSERT_EQUAL_CHAR("example.com", response_obj.domain);
+    TEST_ASSERT_EQUAL_CHAR("invalid", response_obj.status);
+    TEST_ASSERT_EQUAL_INT(0, response_obj.other_domain_formats.size);
+
+    // request checking
+    get_http_code_fake.return_val = 200;
+    expected_find_email_response = response_obj;
+    find_email(
+        zb, "example.com", "John", "", "Doe",
+        on_success_find_email_valid,
+        on_error_valid
+    );
+}
+
+void test_find_email_status_valid_payload(void) {
+    response_json = "{\n"
+        "    \"email\": \"john.doe@example.com\",\n"
+        "    \"domain\": \"example.com\",\n"
+        "    \"format\": \"first.last\",\n"
+        "    \"status\": \"valid\",\n"
+        "    \"sub_status\": \"\",\n"
+        "    \"confidence\": \"high\",\n"
+        "    \"did_you_mean\": \"\",\n"
+        "    \"failure_reason\": \"\",\n"
+        "    \"other_domain_formats\": [\n"
+        "        {\n"
+        "            \"format\": \"first_last\",\n"
+        "            \"confidence\": \"high\"\n"
+        "        },\n"
+        "        {\n"
+        "            \"format\": \"first\",\n"
+        "            \"confidence\": \"medium\"\n"
+        "        }\n"
+        "    ]\n"
+        "}";
+
+    // de-serialization testing
+    ZBFindEmailResponse response_obj = zb_find_email_response_from_json(
+        json_tokener_parse(response_json)
+    );
+    TEST_ASSERT_EQUAL_CHAR("john.doe@example.com", response_obj.email);
+    TEST_ASSERT_EQUAL_CHAR("example.com", response_obj.domain);
+    TEST_ASSERT_EQUAL_CHAR("valid", response_obj.status);
+    TEST_ASSERT_EQUAL_INT(2, response_obj.other_domain_formats.size);
+    TEST_ASSERT_EQUAL_CHAR("first_last", response_obj.other_domain_formats.data[0].format);
+    TEST_ASSERT_EQUAL_CHAR("high", response_obj.other_domain_formats.data[0].confidence);
+    TEST_ASSERT_EQUAL_CHAR("first", response_obj.other_domain_formats.data[1].format);
+    TEST_ASSERT_EQUAL_CHAR("medium", response_obj.other_domain_formats.data[1].confidence);
+
+    // request checking
+    get_http_code_fake.return_val = 200;
+    expected_find_email_response = response_obj;
+    find_email(
+        zb, "example.com", "John", "", "Doe",
+        on_success_find_email_valid,
+        on_error_valid
+    );
 }
 
 
