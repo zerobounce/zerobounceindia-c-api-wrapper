@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <string.h>
 
 #include "ZeroBounce/ZBFindEmailResponse.h"
 #include "ZeroBounce/utils.h"
@@ -68,7 +69,7 @@ ZBDomainFormatVector zb_domain_format_vector_init() {
 void zb_domain_format_vector_append(ZBDomainFormatVector* vector, const ZBDomainFormat instance) {
     if (!vector) return;
 
-    vector->data = (ZBDomainFormatVector*) realloc(vector->data, (vector->size + 1) * sizeof(ZBDomainFormatVector));
+    vector->data = (ZBDomainFormat*) realloc(vector->data, (vector->size + 1) * sizeof(ZBDomainFormat));
     if (!vector->data) {
         fprintf(stderr, "Memory allocation failed.\n");
         exit(EXIT_FAILURE);
@@ -106,7 +107,7 @@ char* zb_domain_format_vector_to_string(ZBDomainFormatVector* vector){
         string_vector_append(&string_vector, "]");
 
         final_string = concatenate_strings(&string_vector);
-        string_vector_free(&final_string);
+        string_vector_free(&string_vector);
         free(item_serialization);
         return final_string;
     }
@@ -126,7 +127,7 @@ char* zb_domain_format_vector_to_string(ZBDomainFormatVector* vector){
     string_vector_append(&string_vector, "]");
 
     final_string = concatenate_strings(&string_vector);
-    string_vector_free(&final_string);
+    string_vector_free(&string_vector);
     return final_string;
 }
 
@@ -241,7 +242,7 @@ ZBFindEmailResponse zb_find_email_response_from_json(const json_object* j) {
     response.other_domain_formats = zb_domain_format_vector_from_json(
        get_json_value(j, json_type_array, "other_domain_formats", empty_list)
     );
-    json_object_array_entry_free(empty_list);
+    json_object_free_userdata(empty_list, json_object_get_userdata(empty_list));
 
     return response;
 }

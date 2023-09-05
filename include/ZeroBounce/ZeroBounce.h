@@ -7,6 +7,7 @@
 #include <time.h>
 
 #include <curl/curl.h>
+#include <curl/header.h>
 
 #include "ZeroBounce/ZBErrorResponse.h"
 #include "ZeroBounce/ZBCreditsResponse.h"
