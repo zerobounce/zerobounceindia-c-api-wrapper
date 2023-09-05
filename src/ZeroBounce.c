@@ -992,6 +992,7 @@ void find_email(
     }
 
     cleanup:
+    string_vector_free(&string_vector);
     free(url_path);
     free(response_data.response);
 }
