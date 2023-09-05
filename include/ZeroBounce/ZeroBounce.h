@@ -18,6 +18,7 @@
 #include "ZeroBounce/ZBGetFileResponse.h"
 #include "ZeroBounce/ZBDeleteFileResponse.h"
 #include "ZeroBounce/ZBActivityDataResponse.h"
+#include "ZeroBounce/ZBFindEmailResponse.h"
 
 typedef void (*OnErrorCallback)(ZBErrorResponse error_response);
 typedef void (*OnSuccessCallbackCredits)(ZBCreditsResponse response);
@@ -29,6 +30,7 @@ typedef void (*OnSuccessCallbackFileStatus)(ZBFileStatusResponse response);
 typedef void (*OnSuccessCallbackGetFile)(ZBGetFileResponse response);
 typedef void (*OnSuccessCallbackDeleteFile)(ZBDeleteFileResponse response);
 typedef void (*OnSuccessCallbackActivityData)(ZBActivityDataResponse response);
+typedef void (*OnSuccessCallbackFindEmail)(ZBFindEmailResponse response);
 
 
 /**
@@ -435,6 +437,28 @@ void get_activity_data(
     ZeroBounce *zb,
     char* email,
     OnSuccessCallbackActivityData success_callback,
+    OnErrorCallback error_callback
+);
+
+
+/**
+ * @brief Email Address Search - Identifies and validates a person’s primary email address
+ *
+ * @param zb                ZeroBounce pointer
+ * @param domain            The email domain for which to find the email format
+ * @param first_name        The first name of the person whose email format is being searched
+ * @param middle_name       The middle name of the person whose email format is being searched
+ * @param last_name         The last name of the person whose email format is being searched
+ * @param success_callback  success callback
+ * @param error_callback    error callback
+ */
+void find_email(
+    ZeroBounce* zb,
+    char* domain,
+    char* first_name,
+    char* middle_name,
+    char* last_name,
+    OnSuccessCallbackFindEmail success_callback,
     OnErrorCallback error_callback
 );
 

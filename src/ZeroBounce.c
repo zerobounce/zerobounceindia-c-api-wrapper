@@ -925,3 +925,73 @@ void get_activity_data(
     free(url_path);
     free(response_data.response);
 }
+
+
+void find_email(
+    ZeroBounce* zb,
+    char* domain,
+    char* first_name,
+    char* middle_name,
+    char* last_name,
+    OnSuccessCallbackFindEmail success_callback,
+    OnErrorCallback error_callback
+) {
+    if (zero_bounce_invalid_api_key(zb, error_callback)) return;
+
+    StringVector string_vector = string_vector_init();
+    string_vector_append(&string_vector, zb->api_base_url);
+    string_vector_append(&string_vector, "/guessformat?api_key=");
+    string_vector_append(&string_vector, zb->api_key);
+
+    if (domain != NULL && strlen(domain)) {
+        string_vector_append(&string_vector, "/&domain=");
+        string_vector_append(&string_vector, domain);
+    }
+    if (first_name != NULL && strlen(first_name)) {
+        string_vector_append(&string_vector, "/&first_name=");
+        string_vector_append(&string_vector, first_name);
+    }
+    if (middle_name != NULL && strlen(middle_name)) {
+        string_vector_append(&string_vector, "/&middle_name=");
+        string_vector_append(&string_vector, middle_name);
+    }
+    if (last_name != NULL && strlen(last_name)) {
+        string_vector_append(&string_vector, "/&last_name=");
+        string_vector_append(&string_vector, last_name);
+    }
+    char *url_path = concatenate_strings(&string_vector);
+    if (!url_path) {
+        fprintf(stderr, "Memory allocation failed.\n");
+        exit(EXIT_FAILURE);
+    };
+
+    memory response_data = {0};
+    long http_code;
+
+    if(!make_request(url_path, "GET", "Accept: application/json", &response_data, &http_code, error_callback)){
+        goto cleanup;
+    }
+
+    if (http_code > 299) {
+        if (error_callback) {
+            error_callback(parse_error(response_data.response));
+        }
+    } else {
+        if (success_callback) {
+            json_object *j_obj = json_tokener_parse(response_data.response);
+            if (j_obj == NULL) {
+                error_callback(parse_error("Failed to parse json string"));
+                goto cleanup;
+            }
+
+            ZBFindEmailResponse response_obj = zb_find_email_response_from_json(j_obj);
+            success_callback(response_obj);
+            zb_find_email_response_free(&response_obj);
+            json_object_put(j_obj);
+        }
+    }
+
+    cleanup:
+    free(url_path);
+    free(response_data.response);
+}
