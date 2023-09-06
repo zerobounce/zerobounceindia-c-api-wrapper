@@ -48,7 +48,6 @@ ZBDomainFormat zb_domain_format_from_json(const json_object* j) {
 
 void zb_domain_format_free(ZBDomainFormat* instance) {
     if (instance == NULL) return;
-
     free(instance->format);
     free(instance->confidence);
     instance->format = NULL;
@@ -56,8 +55,9 @@ void zb_domain_format_free(ZBDomainFormat* instance) {
 }
 
 int zb_domain_format_compare(ZBDomainFormat* instance1, ZBDomainFormat* instance2) {
-    return instance1->format == instance2->format &&
-        instance2->confidence == instance2->confidence;
+    return
+        strcmp(instance1->format, instance2->format) == 0 &&
+        strcmp(instance2->confidence, instance2->confidence) == 0;
 }
 
 // ZBDomainFormatVector methods
@@ -84,7 +84,7 @@ void zb_domain_format_vector_append(ZBDomainFormatVector* vector, const ZBDomain
 }
 
 void zb_domain_format_vector_free(ZBDomainFormatVector* vector) {
-    for (int i = 0; i <= vector->size; i++) {
+    for (int i = 0; i < vector->size; i++) {
         zb_domain_format_free(vector->data+i);
     }
     free(vector->data);
@@ -162,7 +162,7 @@ int zb_domain_format_vector_compare(ZBDomainFormatVector* instance1, ZBDomainFor
         return 0;
     }
     for (int index = 0; index < instance1->size; index ++) {
-        if (!zb_domain_format_compare(instance1->data + index, instance1->data + index)) {
+        if (!zb_domain_format_compare(instance1->data + index, instance2->data + index)) {
             return 0;
         }
     }
@@ -253,11 +253,8 @@ ZBFindEmailResponse zb_find_email_response_from_json(const json_object* j) {
     response.did_you_mean = *(char**)get_json_value(j, json_type_string, "did_you_mean", &(char*){""});
     response.failure_reason = *(char**)get_json_value(j, json_type_string, "failure_reason", &(char*){""});
 
-    json_object* empty_list = json_object_new_array_ext(0);
-    response.other_domain_formats = zb_domain_format_vector_from_json(
-       get_json_value(j, json_type_array, "other_domain_formats", empty_list)
-    );
-    json_object_free_userdata(empty_list, json_object_get_userdata(empty_list));
+    json_object * domain_formats_json = json_object_object_get(j, "other_domain_formats");
+    response.other_domain_formats = zb_domain_format_vector_from_json(domain_formats_json);
 
     return response;
 }
@@ -283,14 +280,15 @@ void zb_find_email_response_free(ZBFindEmailResponse* instance) {
 }
 
 int zb_find_email_response_compare(ZBFindEmailResponse* instance1, ZBFindEmailResponse* instance2) {
-    return instance1->email == instance2->email &&
-        instance1->domain == instance2->domain &&
-        instance1->format == instance2->format &&
-        instance1->status == instance2->status &&
-        instance1->sub_status == instance2->sub_status &&
-        instance1->confidence == instance2->confidence &&
-        instance1->did_you_mean == instance2->did_you_mean &&
-        instance1->failure_reason == instance2->failure_reason &&
+    return
+        strcmp(instance1->email, instance2->email) == 0 &&
+        strcmp(instance1->domain, instance2->domain) == 0 &&
+        strcmp(instance1->format, instance2->format) == 0 &&
+        strcmp(instance1->status, instance2->status) == 0 &&
+        strcmp(instance1->sub_status, instance2->sub_status) == 0 &&
+        strcmp(instance1->confidence, instance2->confidence) == 0 &&
+        strcmp(instance1->did_you_mean, instance2->did_you_mean) == 0 &&
+        strcmp(instance1->failure_reason, instance2->failure_reason) == 0 &&
         zb_domain_format_vector_compare(
             &(instance1->other_domain_formats), &(instance2->other_domain_formats)
         );

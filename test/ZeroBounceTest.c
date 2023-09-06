@@ -608,9 +608,9 @@ void test_find_email_status_invalid_payload(void) {
     ZBFindEmailResponse response_obj = zb_find_email_response_from_json(
         json_tokener_parse(response_json)
     );
-    TEST_ASSERT_EQUAL_CHAR("", response_obj.email);
-    TEST_ASSERT_EQUAL_CHAR("example.com", response_obj.domain);
-    TEST_ASSERT_EQUAL_CHAR("invalid", response_obj.status);
+    TEST_ASSERT_EQUAL_STRING("", response_obj.email);
+    TEST_ASSERT_EQUAL_STRING("example.com", response_obj.domain);
+    TEST_ASSERT_EQUAL_STRING("invalid", response_obj.status);
     TEST_ASSERT_EQUAL_INT(0, response_obj.other_domain_formats.size);
 
     // request checking
@@ -649,14 +649,14 @@ void test_find_email_status_valid_payload(void) {
     ZBFindEmailResponse response_obj = zb_find_email_response_from_json(
         json_tokener_parse(response_json)
     );
-    TEST_ASSERT_EQUAL_CHAR("john.doe@example.com", response_obj.email);
-    TEST_ASSERT_EQUAL_CHAR("example.com", response_obj.domain);
-    TEST_ASSERT_EQUAL_CHAR("valid", response_obj.status);
+    TEST_ASSERT_EQUAL_STRING("john.doe@example.com", response_obj.email);
+    TEST_ASSERT_EQUAL_STRING("example.com", response_obj.domain);
+    TEST_ASSERT_EQUAL_STRING("valid", response_obj.status);
     TEST_ASSERT_EQUAL_INT(2, response_obj.other_domain_formats.size);
-    TEST_ASSERT_EQUAL_CHAR("first_last", response_obj.other_domain_formats.data[0].format);
-    TEST_ASSERT_EQUAL_CHAR("high", response_obj.other_domain_formats.data[0].confidence);
-    TEST_ASSERT_EQUAL_CHAR("first", response_obj.other_domain_formats.data[1].format);
-    TEST_ASSERT_EQUAL_CHAR("medium", response_obj.other_domain_formats.data[1].confidence);
+    TEST_ASSERT_EQUAL_STRING("first_last", response_obj.other_domain_formats.data[0].format);
+    TEST_ASSERT_EQUAL_STRING("high", response_obj.other_domain_formats.data[0].confidence);
+    TEST_ASSERT_EQUAL_STRING("first", response_obj.other_domain_formats.data[1].format);
+    TEST_ASSERT_EQUAL_STRING("medium", response_obj.other_domain_formats.data[1].confidence);
 
     // request checking
     get_http_code_fake.return_val = 200;
@@ -697,6 +697,8 @@ int main(void)
     RUN_TEST(test_scoring_get_file_valid);
     RUN_TEST(test_scoring_delete_file_invalid);
     RUN_TEST(test_scoring_delete_file_valid);
+    RUN_TEST(test_find_email_status_invalid_payload);
+    RUN_TEST(test_find_email_status_valid_payload);
 
     return UNITY_END();
 }

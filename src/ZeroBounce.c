@@ -940,23 +940,23 @@ void find_email(
 
     StringVector string_vector = string_vector_init();
     string_vector_append(&string_vector, zb->api_base_url);
-    string_vector_append(&string_vector, "/guessformat?api_key=");
+    string_vector_append(&string_vector, strdup("/guessformat?api_key="));
     string_vector_append(&string_vector, zb->api_key);
 
     if (domain != NULL && strlen(domain)) {
-        string_vector_append(&string_vector, "&domain=");
+        string_vector_append(&string_vector, strdup("&domain="));
         string_vector_append(&string_vector, domain);
     }
     if (first_name != NULL && strlen(first_name)) {
-        string_vector_append(&string_vector, "&first_name=");
+        string_vector_append(&string_vector, strdup("&first_name="));
         string_vector_append(&string_vector, first_name);
     }
     if (middle_name != NULL && strlen(middle_name)) {
-        string_vector_append(&string_vector, "&middle_name=");
+        string_vector_append(&string_vector, strdup("&middle_name="));
         string_vector_append(&string_vector, middle_name);
     }
     if (last_name != NULL && strlen(last_name)) {
-        string_vector_append(&string_vector, "&last_name=");
+        string_vector_append(&string_vector, strdup("&last_name="));
         string_vector_append(&string_vector, last_name);
     }
     char *url_path = concatenate_strings(&string_vector);
