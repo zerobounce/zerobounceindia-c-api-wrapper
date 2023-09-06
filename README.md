@@ -287,6 +287,27 @@ char* file_id = "<FILE_ID>";                       // The returned file ID when 
 scoring_delete_file(zb, file_id, on_success_delete_file, on_error);
 ```
 
+* ##### Find email - identify the correct email format given a name and email domain
+```c
+void error_callback(ZBErrorResponse error_response) {
+    char* error_string = concatenate_strings(&(error_response.errors), "");
+    printf("ERROR: %s\n", error_string);
+    free(error_string);
+}
+
+void on_success_callback(ZBFindEmailResponse response) {
+    char* result = zb_find_email_response_to_string(&response);
+    printf("%s\n", result);
+    free(result);
+}
+
+// actual method
+find_email(
+    zb, "example.com", "John", "", "Doe", on_success_callback, error_callback
+);
+```
+
+
 ## DEVELOPMENT
 
 It is recommended that the development should be done on Linux.

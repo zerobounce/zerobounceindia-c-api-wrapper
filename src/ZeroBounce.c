@@ -1014,7 +1014,6 @@ void find_email(
                 error_callback(parse_error("Failed to parse json string"));
                 goto cleanup;
             }
-
             ZBFindEmailResponse response_obj = zb_find_email_response_from_json(j_obj);
             success_callback(response_obj);
             zb_find_email_response_free(&response_obj);

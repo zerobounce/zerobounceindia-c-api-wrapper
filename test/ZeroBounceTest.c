@@ -621,6 +621,7 @@ void test_find_email_status_invalid_payload(void) {
         on_success_find_email_valid,
         on_error_valid
     );
+    zb_find_email_response_free(&response_obj);
 }
 
 void test_find_email_status_valid_payload(void) {
@@ -698,9 +699,14 @@ void test_find_email_status_serialize_functions() {
 
     char* string1 = zb_domain_format_to_string(&(response_obj.other_domain_formats.data[0]));
     TEST_ASSERT_NOT_NULL_MESSAGE(string1, "domain format serializing failed");
-    char* string2 = zb_domain_format_vector_to_string(&(response_obj.other_domain_formats));
 
+    char* string2 = zb_domain_format_vector_to_string(&(response_obj.other_domain_formats));
     TEST_ASSERT_NOT_NULL_MESSAGE(string2, "domain format vector serializing failed");
+    TEST_ASSERT_GREATER_THAN_MESSAGE(
+        2,
+        strlen(string2),
+        "domain format vector serializing is '[]' but is should not"
+    );
 
     char* string3 = zb_find_email_response_to_string(&response_obj);
     TEST_ASSERT_NOT_NULL_MESSAGE(string3, "find mail response serializing failed");

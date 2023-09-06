@@ -96,7 +96,7 @@ char* zb_domain_format_vector_to_string(ZBDomainFormatVector* vector){
     char* final_string;
 
     if (vector->size == 0) {
-        return "[]";
+        return strdup("[]");
     }
 
     StringVector string_vector = string_vector_init();
@@ -238,6 +238,7 @@ char* zb_find_email_response_to_string(ZBFindEmailResponse* response) {
         response->failure_reason,
         domain_serialization
     );
+
     free(domain_serialization);
     return buffer;
 }
