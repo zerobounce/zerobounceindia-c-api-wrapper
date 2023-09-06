@@ -109,7 +109,7 @@ char* zb_domain_format_vector_to_string(ZBDomainFormatVector* vector){
         string_vector_append(&string_vector, item_serialization);
         string_vector_append(&string_vector, "]");
 
-        final_string = concatenate_strings(&string_vector);
+        final_string = concatenate_strings(&string_vector, "");
         string_vector_free(&string_vector);
         free(item_serialization);
         return final_string;
@@ -129,7 +129,7 @@ char* zb_domain_format_vector_to_string(ZBDomainFormatVector* vector){
     }
     string_vector_append(&string_vector, "]");
 
-    final_string = concatenate_strings(&string_vector);
+    final_string = concatenate_strings(&string_vector, "");
     string_vector_free(&string_vector);
     return final_string;
 }

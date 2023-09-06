@@ -49,7 +49,7 @@ int compare_string_vector(const StringVector* vec1, const StringVector* vec2);
  * @param vec StringVector pointer
  * @return char* resulting string
  */
-char* concatenate_strings(const StringVector* vec);
+char* concatenate_strings(const StringVector* vec, char* separator) ;
 
 /**
  * @brief Function used to get the value of a given key in a json.

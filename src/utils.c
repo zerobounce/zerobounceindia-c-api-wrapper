@@ -49,13 +49,16 @@ int compare_string_vector(const StringVector* vec1, const StringVector* vec2) {
     return 1;
 }
 
-char* concatenate_strings(const StringVector* vec) {
+char* concatenate_strings(const StringVector* vec, char* separator) {
     size_t total_length = 1;
+    if (separator == NULL) {
+        separator = "";
+    }
 
     for (size_t i = 0; i < vec->size; i++) {
         total_length += strlen(vec->data[i]) + 2;
         if (i < vec->size - 1) {
-            total_length += 2;
+            total_length += strlen(separator);
         }
     }
 
@@ -70,7 +73,7 @@ char* concatenate_strings(const StringVector* vec) {
     for (size_t i = 0; i < vec->size; i++) {
         strcat(result, vec->data[i]);
         if (i < vec->size - 1) {
-            strcat(result, ", ");
+            strcat(result, separator);
         }
     }
 

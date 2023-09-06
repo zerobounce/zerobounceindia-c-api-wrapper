@@ -21,7 +21,7 @@ char* zb_send_file_response_to_string(ZBSendFileResponse* response) {
         ", file_name='%s'"
         ", file_id='%s'"
         "}";
-    char* messages = concatenate_strings(&response->message);
+    char* messages = concatenate_strings(&response->message, ", ");
 
     int size = snprintf(
         NULL, 0, serialization,

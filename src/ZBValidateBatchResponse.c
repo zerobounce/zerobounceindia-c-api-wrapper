@@ -239,8 +239,8 @@ char* zb_validate_batch_response_to_string(ZBValidateBatchResponse* response) {
         string_vector_append(&errors_strings, zb_validate_error_to_string(&response->errors.data[i]));
     }
 
-    char* concatenated_email_batch = concatenate_strings(&email_batch_strings);
-    char* concatenated_errors = concatenate_strings(&errors_strings);
+    char* concatenated_email_batch = concatenate_strings(&email_batch_strings, ", ");
+    char* concatenated_errors = concatenate_strings(&errors_strings, ", ");
 
     int size = snprintf(
         NULL, 0, serialization,

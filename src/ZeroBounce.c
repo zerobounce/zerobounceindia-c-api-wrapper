@@ -990,7 +990,7 @@ void find_email(
         string_vector_append(&string_vector, strdup("&last_name="));
         string_vector_append(&string_vector, last_name);
     }
-    char *url_path = concatenate_strings(&string_vector);
+    char *url_path = concatenate_strings(&string_vector, "");
     if (!url_path) {
         fprintf(stderr, "Memory allocation failed.\n");
         exit(EXIT_FAILURE);
@@ -998,6 +998,7 @@ void find_email(
 
     memory response_data = {0};
     long http_code;
+    printf("Find mail URL: %s\n", url_path);
 
     if(!make_request(url_path, "GET", "Accept: application/json", &response_data, &http_code, error_callback)){
         goto cleanup;
