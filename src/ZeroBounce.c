@@ -128,9 +128,16 @@ static int make_request(
     set_write_callback(curl, response_data);
 
     CURLcode res = curl_easy_perform(curl);
-
     if (res != CURLE_OK) {
-        error_callback(parse_error("Failed to perform request"));
+        char error_message[300];
+        sprintf(
+            error_message,
+            "Failed to perform request. CURLcode: %d. Error: %s",
+            res,
+            curl_easy_strerror(res)
+        );
+        error_callback(parse_error(error_message));
+
         curl_easy_cleanup(curl);
         curl_slist_free_all(headers);
         return 0;
@@ -253,7 +260,15 @@ static void send_file_internal(
     CURLcode res = curl_easy_perform(curl);
 
     if (res != CURLE_OK) {
-        error_callback(parse_error("Failed to perform request"));
+        char error_message[300];
+        sprintf(
+            error_message,
+            "Failed to perform request. CURLcode: %d. Error: %s",
+            res,
+            curl_easy_strerror(res)
+        );
+        error_callback(parse_error(error_message));
+
         curl_easy_cleanup(curl);
         curl_slist_free_all(headers);
         curl_mime_free(multipart);
@@ -393,7 +408,15 @@ static void get_file_internal(
     CURLcode res = curl_easy_perform(curl);
 
     if (res != CURLE_OK) {
-        error_callback(parse_error("Failed to perform request"));
+        char error_message[300];
+        sprintf(
+            error_message,
+            "Failed to perform request. CURLcode: %d. Error: %s",
+            res,
+            curl_easy_strerror(res)
+        );
+        error_callback(parse_error(error_message));
+
         curl_easy_cleanup(curl);
         curl_slist_free_all(headers);
         goto cleanup;
@@ -757,7 +780,15 @@ void validate_email_batch(
     CURLcode res = curl_easy_perform(curl);
 
     if (res != CURLE_OK) {
-        error_callback(parse_error("Failed to perform request"));
+        char error_message[300];
+        sprintf(
+            error_message,
+            "Failed to perform request. CURLcode: %d. Error: %s",
+            res,
+            curl_easy_strerror(res)
+        );
+        error_callback(parse_error(error_message));
+
         curl_easy_cleanup(curl);
         curl_slist_free_all(headers);
         goto cleanup;
