@@ -666,6 +666,49 @@ void test_find_email_status_valid_payload(void) {
         on_success_find_email_valid,
         on_error_valid
     );
+    zb_find_email_response_free(&response_obj);
+}
+
+
+void test_find_email_status_serialize_functions() {
+    response_json = "{\n"
+        "    \"email\": \"john.doe@example.com\",\n"
+        "    \"domain\": \"example.com\",\n"
+        "    \"format\": \"first.last\",\n"
+        "    \"status\": \"valid\",\n"
+        "    \"sub_status\": \"\",\n"
+        "    \"confidence\": \"high\",\n"
+        "    \"did_you_mean\": \"\",\n"
+        "    \"failure_reason\": \"\",\n"
+        "    \"other_domain_formats\": [\n"
+        "        {\n"
+        "            \"format\": \"first_last\",\n"
+        "            \"confidence\": \"high\"\n"
+        "        },\n"
+        "        {\n"
+        "            \"format\": \"first\",\n"
+        "            \"confidence\": \"medium\"\n"
+        "        }\n"
+        "    ]\n"
+        "}";
+
+    ZBFindEmailResponse response_obj = zb_find_email_response_from_json(
+        json_tokener_parse(response_json)
+    );
+
+    char* string1 = zb_domain_format_to_string(&(response_obj.other_domain_formats.data[0]));
+    TEST_ASSERT_NOT_NULL_MESSAGE(string1, "domain format serializing failed");
+    char* string2 = zb_domain_format_vector_to_string(&(response_obj.other_domain_formats));
+
+    TEST_ASSERT_NOT_NULL_MESSAGE(string2, "domain format vector serializing failed");
+
+    char* string3 = zb_find_email_response_to_string(&response_obj);
+    TEST_ASSERT_NOT_NULL_MESSAGE(string3, "find mail response serializing failed");
+
+    free(string1);
+    free(string2);
+    free(string3);
+    zb_find_email_response_free(&response_obj);
 }
 
 
@@ -699,6 +742,7 @@ int main(void)
     RUN_TEST(test_scoring_delete_file_valid);
     RUN_TEST(test_find_email_status_invalid_payload);
     RUN_TEST(test_find_email_status_valid_payload);
+    RUN_TEST(test_find_email_status_serialize_functions);
 
     return UNITY_END();
 }

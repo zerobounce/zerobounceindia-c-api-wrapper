@@ -998,7 +998,6 @@ void find_email(
 
     memory response_data = {0};
     long http_code;
-    printf("Find mail URL: %s\n", url_path);
 
     if(!make_request(url_path, "GET", "Accept: application/json", &response_data, &http_code, error_callback)){
         goto cleanup;
