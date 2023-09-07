@@ -14,7 +14,7 @@ ZBErrorResponse new_zb_error_response() {
 
 char* zb_error_response_to_string(ZBErrorResponse* response) {
     const char* serialization = "ZBErrorResponse{success=%d, errors=[%s]}";
-    char* errors = concatenate_strings(&response->errors);
+    char* errors = concatenate_strings(&response->errors, ", ");
     int size = snprintf(NULL, 0, serialization, response->success, errors);
 
     if (size < 0) {
