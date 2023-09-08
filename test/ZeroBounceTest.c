@@ -17,6 +17,7 @@ static ZBFileStatusResponse expected_file_status_response;
 static ZBGetFileResponse expected_get_file_response;
 static ZBDeleteFileResponse expected_delete_file_response;
 static ZBActivityDataResponse expected_activity_data_response;
+static ZBFindEmailResponse expected_find_email_response;
 
 static char* response_json = "";
 
@@ -100,6 +101,12 @@ void on_success_activity_data_invalid(ZBActivityDataResponse response) {
     TEST_FAIL_MESSAGE(zb_activity_data_response_to_string(&response));
 }
 
+void on_success_find_email_valid(ZBFindEmailResponse response) {
+    TEST_ASSERT_TRUE(
+        zb_find_email_response_compare(&expected_find_email_response, &response)
+    );
+}
+
 // Handle mocks
 
 void mock_set_write_callback(CURL* curl, memory* response_data) {
@@ -125,7 +132,7 @@ void setUp(void) {
     RESET_FAKE(set_write_callback);
     RESET_FAKE(get_http_code);
     RESET_FAKE(get_content_type_value);
-    
+
     curl_easy_perform_fake.return_val = CURLE_OK;
     set_write_callback_fake.custom_fake = mock_set_write_callback;
 }
@@ -426,7 +433,7 @@ void test_get_file_invalid(void)
 
 void test_get_file_valid(void)
 {
-    response_json = 
+    response_json =
         "\"Email Address\",\"First Name\",\"Last Name\",\"Gender\",\"ZB Status\",\"ZB Sub Status\",\"ZB Account\",\"ZB Domain\",\"ZB First Name\",\"ZB Last Name\",\"ZB Gender\",\"ZB Free Email\",\"ZB MX Found\",\"ZB MX Record\",\"ZB SMTP Provider\",\"ZB Did You Mean\"\n"
         "\"valid@example.com\",\"zero\",\"bounce\",\"\",\"valid\",\"\",\"\",\"\",\"zero\",\"bounce\",\"male\",\"False\",\"true\",\"mx.example.com\",\"example\",\"\"\n";
 
@@ -543,7 +550,7 @@ void test_scoring_get_file_invalid(void)
 
 void test_scoring_get_file_valid(void)
 {
-    response_json = 
+    response_json =
         "\"email\",\"firstname\",\"lastname\",\"ZeroBounceQualityScore\"\n"
         "\"valid@example.com\",\"zero\",\"bounce\",\"10\"";
 
@@ -584,6 +591,132 @@ void test_scoring_delete_file_valid(void)
     scoring_delete_file(zb, "aaaaaaaa-zzzz-xxxx-yyyy-5003727fffff", on_success_delete_file_valid, on_error_valid);
 }
 
+void test_find_email_status_invalid_payload(void) {
+    response_json = "{\n"
+        "    \"email\": \"\",\n"
+        "    \"domain\": \"example.com\",\n"
+        "    \"format\": \"unknown\",\n"
+        "    \"status\": \"invalid\",\n"
+        "    \"sub_status\": \"no_dns_entries\",\n"
+        "    \"confidence\": \"undetermined\",\n"
+        "    \"did_you_mean\": \"\",\n"
+        "    \"failure_reason\": \"\",\n"
+        "    \"other_domain_formats\": []\n"
+        "}";
+
+    // de-serialization testing
+    ZBFindEmailResponse response_obj = zb_find_email_response_from_json(
+        json_tokener_parse(response_json)
+    );
+    TEST_ASSERT_EQUAL_STRING("", response_obj.email);
+    TEST_ASSERT_EQUAL_STRING("example.com", response_obj.domain);
+    TEST_ASSERT_EQUAL_STRING("invalid", response_obj.status);
+    TEST_ASSERT_EQUAL_INT(0, response_obj.other_domain_formats.size);
+
+    // request checking
+    get_http_code_fake.return_val = 200;
+    expected_find_email_response = response_obj;
+    find_email(
+        zb, "example.com", "John", "", "Doe",
+        on_success_find_email_valid,
+        on_error_valid
+    );
+    zb_find_email_response_free(&response_obj);
+}
+
+void test_find_email_status_valid_payload(void) {
+    response_json = "{\n"
+        "    \"email\": \"john.doe@example.com\",\n"
+        "    \"domain\": \"example.com\",\n"
+        "    \"format\": \"first.last\",\n"
+        "    \"status\": \"valid\",\n"
+        "    \"sub_status\": \"\",\n"
+        "    \"confidence\": \"high\",\n"
+        "    \"did_you_mean\": \"\",\n"
+        "    \"failure_reason\": \"\",\n"
+        "    \"other_domain_formats\": [\n"
+        "        {\n"
+        "            \"format\": \"first_last\",\n"
+        "            \"confidence\": \"high\"\n"
+        "        },\n"
+        "        {\n"
+        "            \"format\": \"first\",\n"
+        "            \"confidence\": \"medium\"\n"
+        "        }\n"
+        "    ]\n"
+        "}";
+
+    // de-serialization testing
+    ZBFindEmailResponse response_obj = zb_find_email_response_from_json(
+        json_tokener_parse(response_json)
+    );
+    TEST_ASSERT_EQUAL_STRING("john.doe@example.com", response_obj.email);
+    TEST_ASSERT_EQUAL_STRING("example.com", response_obj.domain);
+    TEST_ASSERT_EQUAL_STRING("valid", response_obj.status);
+    TEST_ASSERT_EQUAL_INT(2, response_obj.other_domain_formats.size);
+    TEST_ASSERT_EQUAL_STRING("first_last", response_obj.other_domain_formats.data[0].format);
+    TEST_ASSERT_EQUAL_STRING("high", response_obj.other_domain_formats.data[0].confidence);
+    TEST_ASSERT_EQUAL_STRING("first", response_obj.other_domain_formats.data[1].format);
+    TEST_ASSERT_EQUAL_STRING("medium", response_obj.other_domain_formats.data[1].confidence);
+
+    // request checking
+    get_http_code_fake.return_val = 200;
+    expected_find_email_response = response_obj;
+    find_email(
+        zb, "example.com", "John", "", "Doe",
+        on_success_find_email_valid,
+        on_error_valid
+    );
+    zb_find_email_response_free(&response_obj);
+}
+
+
+void test_find_email_status_serialize_functions() {
+    response_json = "{\n"
+        "    \"email\": \"john.doe@example.com\",\n"
+        "    \"domain\": \"example.com\",\n"
+        "    \"format\": \"first.last\",\n"
+        "    \"status\": \"valid\",\n"
+        "    \"sub_status\": \"\",\n"
+        "    \"confidence\": \"high\",\n"
+        "    \"did_you_mean\": \"\",\n"
+        "    \"failure_reason\": \"\",\n"
+        "    \"other_domain_formats\": [\n"
+        "        {\n"
+        "            \"format\": \"first_last\",\n"
+        "            \"confidence\": \"high\"\n"
+        "        },\n"
+        "        {\n"
+        "            \"format\": \"first\",\n"
+        "            \"confidence\": \"medium\"\n"
+        "        }\n"
+        "    ]\n"
+        "}";
+
+    ZBFindEmailResponse response_obj = zb_find_email_response_from_json(
+        json_tokener_parse(response_json)
+    );
+
+    char* string1 = zb_domain_format_to_string(&(response_obj.other_domain_formats.data[0]));
+    TEST_ASSERT_NOT_NULL_MESSAGE(string1, "domain format serializing failed");
+
+    char* string2 = zb_domain_format_vector_to_string(&(response_obj.other_domain_formats));
+    TEST_ASSERT_NOT_NULL_MESSAGE(string2, "domain format vector serializing failed");
+    TEST_ASSERT_GREATER_THAN_MESSAGE(
+        2,
+        strlen(string2),
+        "domain format vector serializing is '[]' but is should not"
+    );
+
+    char* string3 = zb_find_email_response_to_string(&response_obj);
+    TEST_ASSERT_NOT_NULL_MESSAGE(string3, "find mail response serializing failed");
+
+    free(string1);
+    free(string2);
+    free(string3);
+    zb_find_email_response_free(&response_obj);
+}
+
 
 int main(void)
 {
@@ -613,6 +746,9 @@ int main(void)
     RUN_TEST(test_scoring_get_file_valid);
     RUN_TEST(test_scoring_delete_file_invalid);
     RUN_TEST(test_scoring_delete_file_valid);
+    RUN_TEST(test_find_email_status_invalid_payload);
+    RUN_TEST(test_find_email_status_valid_payload);
+    RUN_TEST(test_find_email_status_serialize_functions);
 
     return UNITY_END();
 }

@@ -1,4 +1,5 @@
 #### INSTALLATION
+#### INSTALLATION
 Before installing the wrapper, you have to make sure that `CMake` is installed on your system. It can be downloaded from [here](https://cmake.org/download/).
 
 You can install by using CMake with `FetchContent`. Add the following to your `CMakeLists.txt`:
@@ -46,7 +47,7 @@ Be aware that the library may require some .dll files (found in the `build` dire
 Include the library in your file:
 ```c
 ###include <ZeroBounce/ZeroBounce.h>
-``` 
+```
 
 Initialize the wrapper with your api key:
 ```c
